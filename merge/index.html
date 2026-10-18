@@ -7,6 +7,14 @@
 <html lang="en" class="has-sitebar">
 <head>
   <meta charset="UTF-8">
+  <!-- Google Analytics 4 (events are sent from shared/analytics.js trackEvent) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PX11L2Z16E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-PX11L2Z16E');
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#fdf6ec">
   <title>Number Merge — Free Online Merge Game, No Download</title>
@@ -521,7 +529,7 @@
   <!-- Phaser 3（已内置 Matter.js 物理引擎），通过 CDN 引入，锁定版本号 -->
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
   <!-- 公共脚本：埋点必须在广告之前引入 -->
-  <script src="../shared/analytics.js?v=6"></script>
+  <script src="../shared/analytics.js?v=7"></script>
   <script src="../shared/ads.js?v=6"></script>
   <script src="../shared/sound.js?v=8"></script>
   <!-- 游戏逻辑 -->

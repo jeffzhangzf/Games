@@ -8,6 +8,14 @@
 <html lang="en" class="has-sitebar">
 <head>
   <meta charset="UTF-8">
+  <!-- Google Analytics 4 (events are sent from shared/analytics.js trackEvent) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PX11L2Z16E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-PX11L2Z16E');
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#f7f0e3">
   <title>Two Beat One — Free Online Folk Board Game vs AI</title>
@@ -613,7 +621,7 @@
 
   <!-- 公共脚本：埋点必须在广告之前引入
        ?v=… 是版本号：改了脚本后把它改一下，浏览器就不会继续用缓存里的旧文件 -->
-  <script src="../shared/analytics.js?v=6"></script>
+  <script src="../shared/analytics.js?v=7"></script>
   <script src="../shared/ads.js?v=6"></script>
   <script src="../shared/sound.js?v=8" onerror="console.error('Sound file failed to load: ' + this.src)"></script>
   <!-- AI（纯函数，不碰页面）和游戏逻辑 -->

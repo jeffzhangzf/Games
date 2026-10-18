@@ -9,6 +9,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <!-- Google Analytics 4 (events are sent from shared/analytics.js trackEvent) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PX11L2Z16E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-PX11L2Z16E');
+  </script>
   <!-- viewport-fit=cover：让页面延伸到刘海区域，配合 CSS 里的 safe-area 使用 -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#f5f6fa">
@@ -261,7 +269,7 @@
        当前显示灰色"广告位"占位块；以后接入真实广告只需修改 ads.js 里的 showBanner -->
   <div id="ad-banner"></div>
 
-  <script src="shared/analytics.js?v=6"></script>
+  <script src="shared/analytics.js?v=7"></script>
   <script src="shared/ads.js?v=6"></script>
   <script>
     // 显示底部横幅广告

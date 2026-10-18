@@ -2,8 +2,8 @@
  * shared/analytics.js — 埋点（数据统计）
  * 用途：统一的事件上报入口，所有页面都通过 trackEvent() 上报
  *
- * 当前：只在控制台打印（console.log），方便本地调试
- * 以后：接入 Google Analytics 4（GA4），步骤见下方注释
+ * 已接入 Google Analytics 4（衡量 ID G-PX11L2Z16E，gtag 代码在每个 HTML 的 <head> 里）
+ * 本地调试（localhost / 127.0.0.1 / file://）时同时在控制台打印
  *
  * 使用方式（在 HTML 里先引入本文件）：
  *   <script src="../shared/analytics.js"></script>
@@ -53,8 +53,8 @@
     MERGE: 'merge'              // 合成一次，参数：{ value }（阶段 2 使用）
   };
 
-  // 是否在控制台打印事件（上线后可以改成 false）
-  var DEBUG = true;
+  // 只在本地调试时在控制台打印事件
+  var DEBUG = /^(localhost|127\.0\.0\.1|)$/.test(location.hostname);
 
   /**
    * 上报一个事件
@@ -77,24 +77,10 @@
       console.log('[analytics]', name, payload);
     }
 
-    /* ------------------------------------------------------
-     * TODO：接入 Google Analytics 4
-     *
-     * 1. 在 GA 后台创建"网站"数据流，拿到衡量 ID（形如 G-XXXXXXXXXX）
-     * 2. 在每个 HTML 的 <head> 里加入 GA 官方代码：
-     *      <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-     *      <script>
-     *        window.dataLayer = window.dataLayer || [];
-     *        function gtag(){ dataLayer.push(arguments); }
-     *        gtag('js', new Date());
-     *        gtag('config', 'G-XXXXXXXXXX');
-     *      </script>
-     * 3. 取消下面这段代码的注释即可：
-     *
-     *    if (typeof window.gtag === 'function') {
-     *      window.gtag('event', name, params);
-     *    }
-     * ------------------------------------------------------ */
+    // 发送到 GA4（页面路径由 GA 自动记录，所以只发事件参数）
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', name, params);
+    }
   }
 
   // 挂到全局，供其他脚本使用
