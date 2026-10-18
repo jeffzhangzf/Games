@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<!-- =========================================================
+  merge/index.html — "合成数字"游戏页面
+  用途：搭建页面骨架（游戏画布容器、顶部分数栏、结束弹窗、难度选择弹窗、横屏提示），
+        通过 CDN 加载 Phaser 3，再加载公共脚本和游戏逻辑 game.js
+  ========================================================= -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#fdf6ec">
+  <title>Number Merge — Free Online Merge Game, No Download</title>
+  <!-- SEO -->
+  <meta name="description" content="Number Merge: drop number balls and smash matching numbers into bigger ones — 1 → 2 → 4 → … → 2048! Four difficulty levels. Free online game, no download, plays instantly on phone or desktop.">
+  <meta name="keywords" content="number merge,merge game,2048,drop and merge,physics puzzle,free online game,browser game,no download">
+
+  <!-- Open Graph / 分享卡片 -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:site_name" content="Mini Games">
+  <meta property="og:title" content="Number Merge — Can you reach 2048?">
+  <meta property="og:description" content="Drop number balls, matching numbers merge on contact. Free to play, no download.">
+  <!-- TODO 上线后：og:url / og:image 需要真实域名下的绝对地址，例如
+       <meta property="og:url" content="https://<user>.github.io/<repo>/merge/">
+       <meta property="og:image" content="https://<user>.github.io/<repo>/merge/og.png">（1200×630） -->
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="../shared/style.css?v=2">
+
+  <style>
+    html, body {
+      background: #fdf6ec;  /* 与游戏画布背景色一致，避免露出色差 */
+      overflow: hidden;     /* 游戏页不需要滚动 */
+    }
+
+    /* 游戏外层容器：铺满屏幕，避开刘海和底部横条；电脑上最宽 480px 居中 */
+    #app {
+      position: fixed;
+      top: var(--safe-top);
+      bottom: var(--safe-bottom);
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      max-width: 480px;
+    }
+
+    /* Phaser 画布挂载点 */
+    #game {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* 顶部分数栏（DOM 实现，叠在画布上方） */
+    #hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 56px;          /* ⚠ 与 game.js 中 CONFIG.HUD_HEIGHT 保持一致 */
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      pointer-events: none;  /* 不挡住点击，点击会穿透到画布 */
+    }
+    #hud .hud-left,
+    #hud .hud-right {
+      display: flex;
+      align-items: center;
+    }
+    #hud .hud-right {
+      gap: 14px;
+    }
+    #hud .back {
+      pointer-events: auto;  /* 返回按钮本身需要能点 */
+      font-size: 22px;
+      color: var(--text-sub);
+      padding: 4px 8px 4px 0;
+    }
+    /* 静音开关 */
+    #hud .mute {
+      pointer-events: auto;
+      background: none;
+      font-size: 18px;
+      padding: 4px 6px;
+      opacity: 0.75;
+    }
+    /* 分数绝对居中（左右两侧宽度不一样，用 flex 居中会偏） */
+    #hud .score-box {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+    }
+    #hud .label {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+    #hud #score {
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+    /* 加分时分数轻微弹一下（game.js 里切换 .bump） */
+    #hud #score.bump {
+      animation: bump 0.2s ease-out;
+    }
+    @keyframes bump {
+      50% { transform: scale(1.18); }
+    }
+    /* 下一个球预告：颜色和数字由 game.js 设置 */
+    #hud .next-box {
+      text-align: center;
+    }
+    #next-ball {
+      width: 24px;
+      height: 24px;
+      margin: 2px auto 0;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #hud .best-box {
+      text-align: right;
+      min-width: 48px;
+    }
+    #hud #best {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    /* 弹窗遮罩（游戏结束弹窗 #modal、难度选择弹窗 #diff-modal 共用） */
+    .modal {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 24px;
+    }
+    .modal.hidden {
+      display: none;
+    }
+    .modal .box {
+      width: 100%;
+      max-width: 300px;
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 28px 20px 20px;
+      text-align: center;
+      animation: pop 0.25s ease-out;
+    }
+    .modal h2 {
+      font-size: 22px;
+      margin-bottom: 16px;
+    }
+    .modal .final-score {
+      font-size: 44px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1.1;
+    }
+    .modal .final-best {
+      margin-top: 6px;
+      font-size: 14px;
+      color: var(--text-sub);
+    }
+    .modal .final-max {
+      margin-top: 4px;
+      font-size: 14px;
+      color: var(--text-sub);
+    }
+    .modal .new-record {
+      margin-top: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #e85a4f;
+    }
+    .modal .new-record.hidden {
+      display: none;
+    }
+    /* 新纪录：弹入 + 金光闪烁 */
+    .modal .new-record:not(.hidden) {
+      display: inline-block;
+      padding: 2px 12px;
+      border-radius: 999px;
+      background: #ffe8a3;
+      animation: celebrate 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), glow 1.2s ease-in-out 0.7s infinite alternate;
+    }
+    @keyframes celebrate {
+      0%   { transform: scale(0) rotate(-12deg); }
+      60%  { transform: scale(1.25) rotate(6deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+    @keyframes glow {
+      to { box-shadow: 0 0 14px rgba(242, 183, 5, 0.9); }
+    }
+
+    /* ---------- 加载页（Phaser 场景准备好之前一直显示） ---------- */
+    #loading {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: #fdf6ec;
+      color: var(--text-sub);
+      font-weight: 700;
+      transition: opacity 0.3s;
+    }
+    #loading.done {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #loading .ball {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #F28A3E;
+      color: #fff;
+      font-size: 28px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: bounce 0.6s ease-in-out infinite alternate;
+    }
+    #loading .bar {
+      width: 180px;
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+    #loading .bar i {
+      display: block;
+      height: 100%;
+      width: 0;
+      border-radius: 4px;
+      background: var(--primary);
+      /* CDN 下载拿不到真实进度：先平滑走到 90%，加载完成时直接到 100% */
+      animation: load 4s cubic-bezier(0.1, 0.7, 0.3, 1) forwards;
+    }
+    #loading.done .bar i {
+      width: 100%;
+      animation: none;
+    }
+    #loading .retry {
+      padding: 10px 22px;
+      border-radius: 999px;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+    }
+    @keyframes load {
+      to { width: 90%; }
+    }
+    @keyframes bounce {
+      to { transform: translateY(-12px); }
+    }
+
+    /* ---------- 首次引导提示 ---------- */
+    #tutorial {
+      position: absolute;
+      top: 42%;           /* 放在警戒线下方的空白处，不挡住顶部待投的球 */
+      left: 50%;
+      z-index: 6;
+      transform: translateX(-50%);
+      width: max-content;
+      max-width: 88%;
+      padding: 10px 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.6;
+      text-align: center;
+      pointer-events: none; /* 不挡住点击 */
+      animation: pop 0.25s ease-out;
+    }
+    #tutorial.hidden {
+      display: none;
+    }
+    .modal .btn {
+      display: block;
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px;
+      border-radius: 999px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 700;
+    }
+    .modal .btn:active {
+      transform: scale(0.97);
+    }
+    /* 次要按钮（白底描边） */
+    .modal .btn.secondary {
+      margin-top: 10px;
+      background: #fff;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+      padding: 12px;
+    }
+    /* 广告关闭时"看广告复活"被隐藏，"再来一局"升级为实心主按钮 */
+    html.no-ads #btn-revive + .btn.secondary {
+      margin-top: 20px;
+      background: var(--primary);
+      color: #fff;
+    }
+    .modal .btn.hidden {
+      display: none;
+    }
+    /* 文字按钮（最弱的操作） */
+    /* 结束弹窗底部的两个文字按钮（切换难度 · 退出）横向排列 */
+    .modal .links {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .modal .links .link-btn {
+      display: inline-block;
+      margin-top: 0;
+    }
+    .modal .link-btn {
+      margin-top: 14px;
+      background: none;
+      color: var(--text-sub);
+      font-size: 14px;
+      padding: 4px 12px;
+    }
+
+    /* 难度选择弹窗：复用 .modal 的遮罩样式 */
+    #diff-modal .box {
+      max-width: 320px;
+    }
+    #diff-modal .tip {
+      font-size: 13px;
+      color: var(--text-sub);
+      margin: -8px 0 12px;
+    }
+    .diff-btn {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: #f5f6fa;
+      border: 2px solid transparent;
+      text-align: left;
+    }
+    .diff-btn:active {
+      transform: scale(0.97);
+    }
+    .diff-btn.last {
+      border-color: var(--primary);  /* 上次选择的难度高亮 */
+    }
+    .diff-btn .name {
+      font-size: 17px;
+      font-weight: 700;
+      width: 72px;   /* fits the longest English name ("Normal" / "Insane") */
+      flex-shrink: 0;
+    }
+    .diff-btn .desc {
+      flex: 1;
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+    .diff-btn .best {
+      font-size: 12px;
+      color: var(--text-sub);
+      text-align: right;
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
+
+    /* 横屏提示：手机横屏时盖住游戏（game.js 同时会暂停游戏） */
+    #rotate-tip {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10000;          /* 比模拟广告弹窗（9999）还高 */
+      background: #fdf6ec;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--text-sub);
+      font-size: 16px;
+    }
+    #rotate-tip .icon {
+      font-size: 48px;
+    }
+    /* ⚠ 与 game.js 中 LANDSCAPE_QUERY 保持一致 */
+    @media (orientation: landscape) and (max-height: 500px) {
+      #rotate-tip {
+        display: flex;
+      }
+    }
+
+    @keyframes pop {
+      from { transform: scale(0.8); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- 游戏画布由 Phaser 自动插入到这里 -->
+    <div id="game"></div>
+
+    <!-- 加载页：盖住一切，直到游戏场景准备好 -->
+    <div id="loading">
+      <div class="ball">2</div>
+      <div id="loading-text">Loading…</div>
+      <div class="bar"><i></i></div>
+    </div>
+
+    <!-- 首次引导（只显示一次，见 game.js 中 CONFIG.TUTORIAL_KEY） -->
+    <div id="tutorial" class="hidden">👆 Tap to drop a number ball<br>Matching numbers merge into bigger ones</div>
+
+    <!-- 顶部分数栏 -->
+    <div id="hud">
+      <div class="hud-left">
+        <a class="back" href="../" aria-label="Back to home">‹</a>
+        <button class="mute" id="btn-mute" aria-label="Toggle sound">🔊</button>
+      </div>
+      <div class="score-box">
+        <div class="label">Score · <span id="diff-name">Normal</span></div>
+        <div id="score">0</div>
+      </div>
+      <div class="hud-right">
+        <div class="next-box">
+          <div class="label">Next</div>
+          <div id="next-ball"></div>
+        </div>
+        <div class="best-box">
+          <div class="label">Best</div>
+          <div id="best">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 暂停弹窗：切到后台 / 窗口失去焦点时显示 -->
+    <div id="pause-modal" class="modal hidden">
+      <div class="box">
+        <h2>Paused</h2>
+        <button class="btn" id="btn-resume">Resume</button>
+      </div>
+    </div>
+
+    <!-- 游戏结束弹窗（默认隐藏） -->
+    <div id="modal" class="modal hidden">
+      <div class="box">
+        <h2>Game Over</h2>
+        <div class="final-score" id="final-score">0</div>
+        <div class="final-best"><span id="final-diff">Normal</span> best: <span id="final-best">0</span></div>
+        <div class="final-max">Biggest number: <span id="final-max">-</span></div>
+        <div class="new-record hidden" id="new-record">🎉 New record!</div>
+        <!-- 看广告复活：每局只能用 1 次，用过后由 game.js 隐藏 -->
+        <button class="btn" id="btn-revive" data-noad-hide>▶ Watch ad to revive</button>
+        <button class="btn secondary" id="btn-restart">Play again</button>
+        <div class="links">
+          <button class="link-btn" id="btn-change-diff">Change difficulty</button>
+          <!-- 退出：回小游戏合集首页（弹窗挡住了左上角的返回按钮） -->
+          <a class="link-btn" href="../">Exit</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 难度选择弹窗（进入页面时显示；按钮由 game.js 根据难度配置自动生成） -->
+    <div id="diff-modal" class="modal hidden">
+      <div class="box">
+        <h2>Choose difficulty</h2>
+        <p class="tip">Each difficulty keeps its own best score</p>
+        <div id="diff-list"></div>
+        <!-- 不想玩了：回首页选其他游戏（弹窗会盖住左上角的返回按钮，所以这里单独放一个） -->
+        <a class="btn secondary" id="btn-exit" href="../">Back to home</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 横屏提示（只在手机横屏时由 CSS 显示） -->
+  <div id="rotate-tip">
+    <div class="icon">📱</div>
+    <div>Please rotate to portrait</div>
+  </div>
+
+  <!-- Phaser 3（已内置 Matter.js 物理引擎），通过 CDN 引入，锁定版本号 -->
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+  <!-- 公共脚本：埋点必须在广告之前引入 -->
+  <script src="../shared/analytics.js?v=5"></script>
+  <script src="../shared/ads.js?v=6"></script>
+  <script src="../shared/sound.js?v=6"></script>
+  <!-- 游戏逻辑 -->
+  <!-- Phaser 是从 CDN 加载的：加载失败时给出提示，而不是白屏 -->
+  <script>
+    if (!window.Phaser) {
+      document.getElementById('loading-text').textContent = 'Failed to load. Check your connection and try again.';
+      document.querySelector('#loading .bar').style.display = 'none';
+      var retry = document.createElement('button');
+      retry.className = 'retry';
+      retry.textContent = 'Reload';
+      retry.onclick = function () { location.reload(); };
+      document.getElementById('loading').appendChild(retry);
+    }
+  </script>
+  <script src="game.js?v=4"></script>
+</body>
+</html>

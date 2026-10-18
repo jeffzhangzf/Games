@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<!-- =========================================================
+  idle/index.html — 挂机农场 游戏页面
+  用途：页面骨架（顶部金币栏、农场网格、底部操作按钮、底部弹出面板、
+        欢迎回来弹窗、提示条、横幅广告位），再加载公共模块、数值配置 data.js 和逻辑 idle.js
+  不依赖游戏引擎：全部用 DOM + CSS 实现
+  ========================================================= -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#eef7e4">
+  <title>Idle Farm — Free Online Idle Game That Earns While You're Away</title>
+  <meta name="description" content="Idle Farm: grow wheat, carrots and pumpkins, raise chickens, cows and bees, and upgrade your farm. It keeps earning coins even after you close the page! Free online idle game, no download, plays instantly on phone or desktop.">
+  <meta name="keywords" content="idle farm,idle game,incremental game,farming game,clicker game,free online game,browser game,no download">
+
+  <!-- Share previews (X, Facebook, Discord, iMessage… all read og:* tags) -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:site_name" content="Mini Games">
+  <meta property="og:title" content="Idle Farm — The farm that keeps earning while you're away">
+  <meta property="og:description" content="Grow crops, raise animals, upgrade your farm and earn offline. Free to play, no download.">
+  <!-- TODO 上线后：og:url / og:image 需要真实域名下的绝对地址，例如
+       <meta property="og:url" content="https://<user>.github.io/<repo>/idle/">
+       <meta property="og:image" content="https://<user>.github.io/<repo>/idle/og.png">（1200×630） -->
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="../shared/style.css?v=2">
+
+  <style>
+    :root {
+      --farm-bg: #eef7e4;
+      --soil: #d9b98f;
+      --soil-dark: #b98f5f;
+      --grass: #cfe8b0;
+      --green: #3fae5a;
+      --gold: #f2b705;
+    }
+    html, body {
+      background: var(--farm-bg);
+      overflow: hidden;
+    }
+
+    /* 外层：顶部栏 / 农场 / 操作按钮 竖向排列；底部给横幅广告留出位置 */
+    #app {
+      position: fixed;
+      top: var(--safe-top);
+      bottom: calc(var(--ad-height) + var(--safe-bottom));
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---------- 顶部金币栏 ---------- */
+    #topbar {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+    }
+    #topbar .back,
+    #topbar .mute {
+      flex-shrink: 0;
+      width: 44px;   /* 最小点击区域 44×44 */
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      color: var(--text-sub);
+    }
+    #topbar .back {
+      justify-content: flex-start;
+    }
+    #topbar .mute {
+      background: none;
+      font-size: 20px;
+      opacity: 0.75;
+      justify-content: flex-end;
+    }
+    .wallet {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 8px 14px;
+      background: #fff;
+      border-radius: 999px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+      font-weight: 800;
+    }
+    .wallet .coins {
+      font-size: 22px;
+    }
+    .wallet .sep {
+      color: #dfe6e9;
+      font-weight: 400;
+    }
+    .wallet .rate {
+      font-size: 15px;
+      color: var(--green);
+    }
+    /* 金币增加时数字跳一下 */
+    .wallet .coins.bump {
+      animation: bump 0.25s ease-out;
+    }
+    @keyframes bump {
+      50% { transform: scale(1.15); }
+    }
+
+    /* ---------- 农场网格 ---------- */
+    #farm-wrap {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 8px 14px 12px;
+    }
+    #farm {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .plot {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: 16px;
+      background: var(--soil);
+      box-shadow: inset 0 -4px 0 var(--soil-dark);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.1s;
+      overflow: hidden;
+    }
+    .plot:active {
+      transform: scale(0.94);
+    }
+    .plot .emoji {
+      font-size: 34px;
+      line-height: 1;
+      transition: transform 0.3s, filter 0.3s, opacity 0.3s;
+    }
+    .plot .label {
+      margin-top: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(0, 0, 0, 0.55);
+      white-space: nowrap;
+    }
+    /* 进度条：用 transform: scaleX 更新，不触发重排，动画更顺滑 */
+    .plot .bar {
+      position: absolute;
+      left: 10%;
+      right: 10%;
+      bottom: 9px;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+    }
+    .plot .bar i {
+      display: block;
+      height: 100%;
+      background: var(--green);
+      transform-origin: left center;
+      transform: scaleX(0);
+    }
+    .plot.has-bar .label {
+      margin-bottom: 8px;
+    }
+
+    /* 空地 */
+    .plot.empty {
+      background: transparent;
+      box-shadow: none;
+      border: 2px dashed var(--soil-dark);
+      opacity: 0.75;
+    }
+    .plot.empty .emoji {
+      font-size: 26px;
+      color: var(--soil-dark);
+      font-weight: 300;
+    }
+    /* 生长中：图标小一点、淡一点 */
+    .plot.growing .emoji {
+      transform: scale(0.7);
+      opacity: 0.75;
+      filter: saturate(0.6);
+    }
+    /* 成熟：金色描边 */
+    .plot.ripe {
+      box-shadow: inset 0 -4px 0 var(--soil-dark), 0 0 0 3px var(--gold);
+    }
+    .plot.ripe .label {
+      color: #8a5a00;
+    }
+    /* 成熟的作物轻轻摇摆，提醒玩家来收 */
+    .plot.ripe .emoji {
+      animation: sway 1.6s ease-in-out infinite;
+    }
+    @keyframes sway {
+      0%, 100% { transform: rotate(-6deg); }
+      50%      { transform: rotate(6deg) translateY(-2px); }
+    }
+    /* 种下 / 收获 / 收集时整块地弹一下 */
+    .plot.pop {
+      animation: plot-pop 0.3s ease-out;
+    }
+    @keyframes plot-pop {
+      40% { transform: scale(1.1); }
+    }
+    /* 新手引导：高亮的地块外圈呼吸闪烁 */
+    .plot.guide {
+      z-index: 1;
+      overflow: visible;
+      animation: guide-pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes guide-pulse {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(242, 183, 5, 0.9); }
+      50%      { box-shadow: 0 0 0 8px rgba(242, 183, 5, 0.35); }
+    }
+    /* 动物：草地背景 */
+    .plot.animal {
+      background: var(--grass);
+      box-shadow: inset 0 -4px 0 #a9cf86;
+    }
+    .plot.animal .bar i {
+      background: #f39c12;
+    }
+    .plot.animal.has-stock {
+      box-shadow: inset 0 -4px 0 #a9cf86, 0 0 0 3px var(--gold);
+    }
+    /* 动物攒着的产出：右上角小气泡 */
+    .plot .stock {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      padding: 1px 5px;
+      border-radius: 999px;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    }
+
+    /* 收获时飘起来的 +金币 */
+    .float-coin {
+      position: fixed;
+      z-index: 50;
+      pointer-events: none;
+      font-weight: 800;
+      font-size: 18px;
+      color: #8a5a00;
+      text-shadow: 0 1px 0 #fff, 0 0 6px #fff;
+      transform: translate(-50%, -50%);
+      animation: float-up 0.8s ease-out forwards;
+    }
+    @keyframes float-up {
+      to { transform: translate(-50%, -150%); opacity: 0; }
+    }
+
+    /* ---------- 新手引导提示条（农场和底部按钮之间） ---------- */
+    #guide {
+      flex-shrink: 0;
+      margin: 0 14px 4px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: #fff8e1;
+      border: 2px solid var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.45;
+      color: #5a3d00;
+    }
+    #guide[hidden] {
+      display: none;
+    }
+    #guide.enter {
+      animation: pop 0.25s ease-out;
+    }
+    #guide span {
+      flex: 1;
+    }
+    #guide button {
+      flex-shrink: 0;
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 999px;
+      background: var(--gold);
+      color: #5a3d00;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    #guide button[hidden] {
+      display: none;
+    }
+
+    /* ---------- 底部操作按钮 ---------- */
+    #actions {
+      flex-shrink: 0;
+      display: flex;
+      gap: 10px;
+      padding: 8px 14px 10px;
+    }
+    #actions button {
+      position: relative;
+      flex: 1;
+      padding: 10px 0;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    #actions button:active {
+      transform: scale(0.95);
+    }
+    #actions .icon {
+      display: block;
+      font-size: 22px;
+    }
+    /* 有东西买得起时的小红点 */
+    #actions .dot {
+      position: absolute;
+      top: 6px;
+      right: 18%;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #e74c3c;
+      display: none;
+    }
+    #actions button.notify .dot {
+      display: block;
+    }
+
+    /* ---------- 底部弹出面板（商店 / 种植 / 升级共用） ---------- */
+    .sheet {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+    }
+    .sheet.hidden {
+      display: none;
+    }
+    .sheet .mask {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+    }
+    .sheet .box {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      max-width: 480px;
+      max-height: 75%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      border-radius: 20px 20px 0 0;
+      padding-bottom: var(--safe-bottom);
+      animation: slide-up 0.22s ease-out;
+    }
+    @keyframes slide-up {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+    .sheet .head {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 18px 8px;
+    }
+    .sheet .head h2 {
+      font-size: 18px;
+    }
+    .sheet .head .wallet-mini {
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-left: 8px;
+      font-weight: 600;
+    }
+    .sheet .close {
+      flex-shrink: 0;
+      background: #f1f2f6;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      font-size: 18px;
+      color: var(--text-sub);
+    }
+    .sheet .body {
+      overflow-y: auto;
+      padding: 4px 18px 18px;
+    }
+    .sheet .section {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin: 12px 0 4px;
+    }
+    /* 面板里的一行：图标 / 名称和说明 / 按钮 */
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f1f2f6;
+    }
+    .row:last-child {
+      border-bottom: none;
+    }
+    .row .r-emoji {
+      font-size: 30px;
+      width: 40px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .row.locked .r-emoji {
+      filter: grayscale(1);
+      opacity: 0.5;
+    }
+    .row .r-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .row .r-name {
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .row .r-name small {
+      font-size: 12px;
+      color: var(--text-sub);
+      font-weight: 600;
+      margin-left: 4px;
+    }
+    .row .r-desc {
+      margin-top: 2px;
+      font-size: 12px;
+      color: var(--text-sub);
+      line-height: 1.4;
+    }
+    .row .r-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .buy {
+      min-width: 82px;
+      min-height: 44px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--green);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .buy.alt {
+      background: #fff;
+      color: var(--green);
+      border: 2px solid var(--green);
+      padding: 6px 10px;
+    }
+    .buy.gold {
+      background: var(--gold);
+      color: #5a3d00;
+    }
+    .buy:active {
+      transform: scale(0.94);
+    }
+    .buy:disabled {
+      background: #dfe6e9;
+      color: #95a5a6;
+      border-color: #dfe6e9;
+    }
+    .sheet .note {
+      padding: 12px 0 4px;
+      font-size: 12px;
+      color: var(--text-sub);
+      text-align: center;
+    }
+
+    /* ---------- 欢迎回来弹窗 ---------- */
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 24px;
+    }
+    .modal.hidden {
+      display: none;
+    }
+    .modal .card {
+      width: 100%;
+      max-width: 320px;
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 26px 20px 20px;
+      text-align: center;
+      animation: pop 0.25s ease-out;
+    }
+    .modal h2 {
+      font-size: 22px;
+    }
+    .modal .sub {
+      margin-top: 6px;
+      font-size: 14px;
+      color: var(--text-sub);
+    }
+    .modal .amount {
+      margin: 14px 0 4px;
+      font-size: 40px;
+      font-weight: 800;
+      color: #c98a00;
+    }
+    .modal .hint {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+    .modal .btn {
+      display: block;
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 999px;
+      background: var(--gold);
+      color: #5a3d00;
+      font-size: 17px;
+      font-weight: 800;
+    }
+    .modal .btn.secondary {
+      margin-top: 10px;
+      background: #fff;
+      color: var(--green);
+      border: 2px solid var(--green);
+      padding: 12px;
+    }
+    /* 广告关闭时"看广告领 2 倍"被隐藏，"领取"升级为实心主按钮 */
+    html.no-ads #btn-offline-2x + .btn.secondary {
+      margin-top: 16px;
+      background: var(--gold);
+      color: #5a3d00;
+      border-color: var(--gold);
+    }
+    .modal .btn:active {
+      transform: scale(0.97);
+    }
+    @keyframes pop {
+      from { transform: scale(0.8); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    /* ---------- 提示条 ---------- */
+    #toast {
+      position: fixed;
+      left: 50%;
+      top: calc(var(--safe-top) + 64px);
+      z-index: 40;
+      transform: translateX(-50%);
+      max-width: 90%;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: rgba(45, 52, 54, 0.9);
+      color: #fff;
+      font-size: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    #toast.show {
+      opacity: 1;
+    }
+
+    /* 横屏提示：⚠ 媒体查询与其他游戏一致 */
+    #rotate-tip {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: var(--farm-bg);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--text-sub);
+      font-size: 16px;
+    }
+    #rotate-tip .icon {
+      font-size: 48px;
+    }
+    @media (orientation: landscape) and (max-height: 500px) {
+      #rotate-tip {
+        display: flex;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部：金币 | 每秒收益 -->
+    <header id="topbar">
+      <a class="back" href="../" aria-label="Back to home">‹</a>
+      <div class="wallet">
+        <span class="coins">💰 <span id="coins">0</span></span>
+        <span class="sep">|</span>
+        <span class="rate"><span id="rate">0</span>/s</span>
+      </div>
+      <button class="mute" id="btn-mute" aria-label="Toggle sound">🔊</button>
+    </header>
+
+    <!-- 农场网格：地块由 idle.js 生成 -->
+    <main id="farm-wrap">
+      <div id="farm"></div>
+    </main>
+
+    <!-- 新手引导提示条（只有新玩家第一次进入时出现） -->
+    <div id="guide" hidden>
+      <span id="guide-text"></span>
+      <button id="guide-btn" hidden>Got it</button>
+    </div>
+
+    <!-- 底部操作 -->
+    <nav id="actions">
+      <button id="btn-seeds"><i class="dot"></i><span class="icon">🌱</span>Seeds</button>
+      <button id="btn-animals"><i class="dot"></i><span class="icon">🐮</span>Animals</button>
+      <button id="btn-upgrades"><i class="dot"></i><span class="icon">⬆️</span>Upgrades</button>
+    </nav>
+  </div>
+
+  <!-- 底部弹出面板：标题和内容由 idle.js 填充 -->
+  <div id="sheet" class="sheet hidden">
+    <div class="mask" id="sheet-mask"></div>
+    <div class="box">
+      <div class="head">
+        <h2><span id="sheet-title"></span><span class="wallet-mini" id="sheet-coins"></span></h2>
+        <button class="close" id="sheet-close" aria-label="Close">✕</button>
+      </div>
+      <div class="body" id="sheet-body"></div>
+    </div>
+  </div>
+
+  <!-- 欢迎回来（离线收益）弹窗 -->
+  <div id="welcome" class="modal hidden">
+    <div class="card">
+      <h2>Welcome back!</h2>
+      <div class="sub">You were away for <span id="away-time"></span>. Your farm earned</div>
+      <div class="amount">+<span id="offline-amount">0</span></div>
+      <div class="hint" id="offline-hint"></div>
+      <button class="btn" id="btn-offline-2x" data-noad-hide>▶ Watch ad for 2×</button>
+      <button class="btn secondary" id="btn-offline-claim">Collect</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <!-- 横屏提示 -->
+  <div id="rotate-tip">
+    <div class="icon">📱</div>
+    <div>Please rotate to portrait</div>
+  </div>
+
+  <!-- 底部横幅广告位（shared/ads.js 的 showBanner 填充） -->
+  <div id="ad-banner"></div>
+
+  <!-- 公共模块：埋点必须在广告之前引入 -->
+  <script src="../shared/analytics.js?v=5"></script>
+  <script src="../shared/ads.js?v=6"></script>
+  <script src="../shared/sound.js?v=6"></script>
+  <!-- 先数值配置，再游戏逻辑 -->
+  <script src="data.js?v=3"></script>
+  <script src="idle.js?v=5"></script>
+</body>
+</html>

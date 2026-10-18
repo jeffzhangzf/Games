@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<!-- =========================================================
+  index.html — 网站首页（游戏入口）
+  用途：展示所有小游戏卡片，点击进入对应游戏
+  - 移动端优先，竖屏布局
+  - 底部固定横幅广告位 #ad-banner
+  ========================================================= -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- viewport-fit=cover：让页面延伸到刘海区域，配合 CSS 里的 safe-area 使用 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f6fa">
+  <title>Mini Games — Free Online Games, No Download</title>
+  <meta name="description" content="Free mini games you can play right in your browser — no download, no sign-up. Number Merge, Balloon Pop, Idle Farm, a gamer personality quiz and more.">
+
+  <link rel="stylesheet" href="shared/style.css?v=2">
+
+  <!-- 首页专用样式（只有几行，直接写在这里） -->
+  <style>
+    .header {
+      padding: 24px 4px 20px;
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .header p {
+      margin-top: 4px;
+      color: var(--text-sub);
+      font-size: 14px;
+    }
+
+    /* 游戏卡片 */
+    .game-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      transition: transform 0.1s;
+    }
+    .game-card:active {
+      transform: scale(0.98); /* 按下时轻微缩小，给点击反馈 */
+    }
+
+    /* 卡片左侧图标：纯 CSS 画的数字球，不用图片 */
+    .game-icon {
+      flex-shrink: 0;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ffb347, #ff7f50);
+      color: #fff;
+      font-size: 26px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 二打一图标：与"合成数字"同样的渐变圆 + 白字，换成棋子的深蓝灰配色；三个字较长，字号调小 */
+    .game-icon.erdayi {
+      background: linear-gradient(135deg, #6b7b96, #3d4b63);
+      font-size: 18px;
+    }
+
+    /* 游戏人格测试图标：同样的渐变圆，紫色系 */
+    /* 打气球图标：同样的渐变圆，天蓝色系 */
+    .game-icon.balloon {
+      background: linear-gradient(135deg, #8fd3ff, #4d9cfe);
+      font-size: 32px;
+    }
+
+    .game-icon.quiz {
+      background: linear-gradient(135deg, #b38cff, #7b61ff);
+      font-size: 32px;
+    }
+
+    /* 挂机农场图标：同样的渐变圆，绿色系，图标用 emoji */
+    .game-icon.idle {
+      background: linear-gradient(135deg, #9be15d, #3fae5a);
+      font-size: 32px;
+    }
+
+    .game-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .game-info h2 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .game-info p {
+      margin-top: 4px;
+      font-size: 13px;
+      color: var(--text-sub);
+      line-height: 1.4;
+      /* 描述最多 2 行，超出显示省略号，保证所有卡片高度一致 */
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      overflow: hidden;
+    }
+
+    .play-btn {
+      flex-shrink: 0;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .coming-soon {
+      text-align: center;
+      color: var(--text-sub);
+      font-size: 13px;
+      padding: 16px 0;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="header">
+      <h1>Mini Games</h1>
+      <p>Free · No download · Play instantly</p>
+    </header>
+
+    <!-- 游戏列表：以后新增游戏，复制一个 <a class="game-card"> 修改即可 -->
+    <section class="game-list">
+      <a class="game-card" href="merge/">
+        <div class="game-icon">2048</div>
+        <div class="game-info">
+          <h2>Number Merge</h2>
+          <p>Drop number balls — matching numbers smash together into bigger ones!</p>
+        </div>
+        <span class="play-btn">Play</span>
+      </a>
+
+      <a class="game-card" href="erdayi/">
+        <div class="game-icon erdayi">2v1</div>
+        <div class="game-info">
+          <h2>Two Beat One</h2>
+          <p>A classic folk board game: line up two pieces against one to capture it. Outsmart the AI!</p>
+        </div>
+        <span class="play-btn">Play</span>
+      </a>
+
+      <a class="game-card" href="balloon/">
+        <div class="game-icon balloon">🎈</div>
+        <div class="game-info">
+          <h2>Balloon Pop</h2>
+          <p>Pop as many balloons as you can in 60 seconds — watch out for the black bombs!</p>
+        </div>
+        <span class="play-btn">Play</span>
+      </a>
+
+      <a class="game-card" href="quiz/">
+        <div class="game-icon quiz">🎮</div>
+        <div class="game-info">
+          <h2>Gamer Personality Quiz</h2>
+          <p>Answer 10 questions to discover your gaming personality.</p>
+        </div>
+        <span class="play-btn">Play</span>
+      </a>
+
+      <a class="game-card" href="idle/">
+        <div class="game-icon idle">🌾</div>
+        <div class="game-info">
+          <h2>Idle Farm</h2>
+          <p>Grow crops, raise animals and keep earning even while you're away.</p>
+        </div>
+        <span class="play-btn">Play</span>
+      </a>
+    </section>
+
+    <p class="coming-soon">More games coming soon…</p>
+  </main>
+
+  <!-- 底部横幅广告位：内容由 shared/ads.js 的 showBanner() 填充
+       当前显示灰色"广告位"占位块；以后接入真实广告只需修改 ads.js 里的 showBanner -->
+  <div id="ad-banner"></div>
+
+  <script src="shared/analytics.js?v=5"></script>
+  <script src="shared/ads.js?v=6"></script>
+  <script>
+    // 显示底部横幅广告
+    showBanner('ad-banner');
+  </script>
+</body>
+</html>

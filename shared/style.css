@@ -1,0 +1,190 @@
+/* =========================================================
+ * shared/style.css — 公共样式
+ * 用途：所有页面（首页 + 各个游戏）共用的基础样式
+ *   - 移动端优先、竖屏布局
+ *   - 禁止文字选中、禁止长按弹出菜单、去掉点击高亮
+ *   - 适配 iPhone 刘海屏 / 底部横条（安全区域）
+ *   - 模拟广告弹窗的样式（配合 shared/ads.js 使用）
+ * ========================================================= */
+
+/* ---------- 1. 颜色等变量，集中管理，方便以后换主题 ---------- */
+:root {
+  --bg: #f5f6fa;          /* 页面背景 */
+  --card-bg: #ffffff;     /* 卡片背景 */
+  --text: #2d3436;        /* 主文字 */
+  --text-sub: #7f8c8d;    /* 次要文字 */
+  --primary: #ff7f50;     /* 主色（按钮、强调） */
+  --radius: 16px;         /* 统一圆角 */
+  --ad-height: 60px;      /* 底部横幅广告高度 */
+
+  /* 安全区域：iPhone 刘海 / 底部横条留白。
+   * 需要 <meta name="viewport" content="..., viewport-fit=cover"> 才会生效 */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+/* ---------- 2. 基础重置 ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  /* 系统字体栈：不加载任何外部字体 */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+
+  /* 禁止 iOS 横屏时自动放大文字 */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+
+  /* 禁止下拉回弹 / 下拉刷新，避免玩游戏时页面被拖动 */
+  overscroll-behavior: none;
+}
+
+/* ---------- 3. 禁止选中 & 禁止长按菜单 ---------- */
+body {
+  -webkit-user-select: none;   /* Safari */
+  user-select: none;           /* 禁止选中文字 */
+  -webkit-touch-callout: none; /* iOS 长按不弹出"拷贝/查询"菜单 */
+  -webkit-tap-highlight-color: transparent; /* 去掉点击时的灰色高亮 */
+  touch-action: manipulation;  /* 去掉双击缩放带来的 300ms 延迟 */
+}
+
+/* 图片、canvas 也禁止长按保存/拖拽 */
+img,
+canvas {
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  border: none;
+  cursor: pointer;
+}
+
+/* ---------- 4. 页面容器：竖屏居中，大屏上也只显示手机宽度 ---------- */
+.page {
+  max-width: 480px;            /* 电脑上打开时限制宽度，保持竖屏观感 */
+  min-height: 100%;
+  margin: 0 auto;
+  padding-top: calc(16px + var(--safe-top));
+  padding-left: calc(16px + var(--safe-left));
+  padding-right: calc(16px + var(--safe-right));
+  /* 底部给横幅广告留出空间 */
+  padding-bottom: calc(var(--ad-height) + 16px + var(--safe-bottom));
+}
+
+/* ---------- 5. 底部横幅广告位 ---------- */
+#ad-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--ad-height) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom); /* 广告内容避开底部横条 */
+  background: var(--bg);              /* 盖住滚动到下方的页面内容 */
+}
+
+/* 广告总开关关闭时（shared/ads.js 给 <html> 加上 no-ads）：
+ * 不显示横幅，并把各页面给横幅预留的底部空间收回 */
+html.no-ads {
+  --ad-height: 0px;
+}
+html.no-ads #ad-banner {
+  display: none;
+}
+
+/* 横幅广告的灰色占位块（shared/ads.js 的 showBanner 生成，接入真实广告后不再使用） */
+.mock-ad-banner {
+  max-width: 480px;
+  height: var(--ad-height);
+  margin: 0 auto;
+  background: #dfe6e9;
+  color: #95a5a6;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ---------- 6. 模拟广告弹窗（shared/ads.js 生成） ---------- */
+.mock-ad-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 24px;
+}
+
+.mock-ad-box {
+  width: 100%;
+  max-width: 320px;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+}
+
+.mock-ad-tag {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--text-sub);
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0 6px;
+  margin-bottom: 12px;
+}
+
+.mock-ad-content {
+  height: 160px;
+  border-radius: 12px;
+  background: #dfe6e9;
+  color: #636e72;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+
+.mock-ad-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 16px;
+}
+
+.mock-ad-btn:disabled {
+  background: #b2bec3;
+  cursor: default;
+}
+
+.mock-ad-skip {
+  margin-top: 10px;
+  background: none;
+  color: var(--text-sub);
+  font-size: 13px;
+}

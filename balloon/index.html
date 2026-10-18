@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<!-- =========================================================
+  balloon/index.html — Balloon Pop ("打气球") game page
+  Purpose: page skeleton — sky background (CSS gradient), the Phaser canvas,
+           DOM overlays on top of it (HUD, start screen, reload banner,
+           result screen, mute button), then shared modules and game.js.
+  Visual theme: carnival balloon stall. No realistic guns anywhere — the
+  player aims with a toy-style crosshair only.
+  ========================================================= -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#8fd3ff">
+  <title>Balloon Pop — Free Online Game, No Download</title>
+  <!-- SEO: description with the keywords people search for -->
+  <meta name="description" content="Balloon Pop: you have 60 seconds to tap and pop colorful balloons. Gold balloons are worth 50 points — but watch out for the black bombs! Free online game, no download, plays instantly on phone or desktop.">
+  <meta name="keywords" content="balloon pop,balloon game,pop balloons,tap game,free online game,browser game,no download">
+
+  <!-- Open Graph / social cards (used when the link is shared) -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:site_name" content="Mini Games">
+  <meta property="og:title" content="Balloon Pop — How many can you pop in 60 seconds?">
+  <meta property="og:description" content="Tap to pop balloons, grab the gold ones for +50, and avoid the bombs! Free to play, no download.">
+  <!-- TODO after deploying: og:url / og:image need absolute URLs on the real domain, e.g.
+       <meta property="og:url" content="https://<user>.github.io/<repo>/balloon/">
+       <meta property="og:image" content="https://<user>.github.io/<repo>/balloon/og.png">  (1200×630) -->
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="../shared/style.css?v=2">
+
+  <style>
+    :root {
+      --sky-text: #1f4e6e;
+      --red: #e63946;
+      --gold: #f2b705;
+    }
+    html, body {
+      overflow: hidden;   /* game page never scrolls */
+      background: #bfe6ff;
+    }
+
+    /* Game container: full screen, max 480px wide on desktop.
+       The sky gradient lives here; the Phaser canvas is transparent on top of it. */
+    #app {
+      position: fixed;
+      top: 0;
+      bottom: calc(var(--ad-height) + var(--safe-bottom));
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      max-width: 480px;
+      background: linear-gradient(180deg, #8fd3ff 0%, #bfe6ff 45%, #eaf7ff 100%);
+      overflow: hidden;
+    }
+    #game {
+      position: absolute;
+      top: var(--safe-top);
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+    /* Desktop: hide the system cursor over the game, the crosshair replaces it */
+    #game canvas {
+      cursor: none;
+    }
+
+    /* ---------- HUD: score | time | ammo ---------- */
+    #hud {
+      position: absolute;
+      top: calc(var(--safe-top) + 8px);
+      left: 8px;
+      right: 8px;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px 6px 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.75);
+      box-shadow: 0 2px 10px rgba(31, 78, 110, 0.12);
+      color: var(--sky-text);
+      pointer-events: none;   /* taps go through to the game… */
+    }
+    #hud .back {
+      pointer-events: auto;   /* …except the back button */
+      font-size: 22px;
+      padding: 0 6px 0 8px;
+      color: var(--sky-text);
+    }
+    .hud-item {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.15;
+    }
+    .hud-item .label {
+      font-size: 11px;
+      opacity: 0.7;
+    }
+    .hud-item b {
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .hud-item.score {
+      min-width: 58px;
+    }
+    .hud-item.time {
+      flex: 1;
+    }
+    .time-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .timebar {
+      flex: 1;
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(31, 78, 110, 0.15);
+      overflow: hidden;
+    }
+    .timebar i {
+      display: block;
+      height: 100%;
+      width: 100%;
+      border-radius: 4px;
+      background: #2ead6b;
+    }
+    .hud-item.time b {
+      min-width: 34px;
+      text-align: right;
+    }
+    /* Last 5 seconds: time turns red and pulses */
+    .hud-item.time.hurry b {
+      color: var(--red);
+      animation: pulse 0.5s ease-in-out infinite alternate;
+    }
+    .hud-item.time.hurry .timebar i {
+      background: var(--red);
+    }
+    .hud-item.ammo {
+      text-align: right;
+      min-width: 60px;
+      padding-left: 10px;
+      border-left: 1px solid rgba(31, 78, 110, 0.15); /* separates it from the time number */
+    }
+    .hud-item.ammo.low b {
+      color: var(--red);
+    }
+    @keyframes pulse {
+      to { transform: scale(1.12); }
+    }
+
+    /* ---------- Mute button (bottom right, over the stall) ---------- */
+    #btn-mute {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      z-index: 5;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      font-size: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    /* ---------- Reload banner (centre of the screen) ---------- */
+    #reload {
+      position: absolute;
+      left: 50%;
+      top: 45%;
+      z-index: 6;
+      transform: translate(-50%, -50%);
+      width: 160px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: rgba(31, 78, 110, 0.85);
+      color: #fff;
+      text-align: center;
+      font-weight: 700;
+      pointer-events: none;
+    }
+    #reload[hidden] {
+      display: none;
+    }
+    #reload .bar {
+      margin-top: 8px;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.25);
+      overflow: hidden;
+    }
+    #reload .bar i {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: var(--gold);
+    }
+    #reload.running .bar i {
+      animation: fill var(--reload-ms, 500ms) linear forwards;
+    }
+    @keyframes fill {
+      to { width: 100%; }
+    }
+
+    /* ---------- Overlays: start screen & result screen ---------- */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(31, 78, 110, 0.35);
+    }
+    .overlay[hidden] {
+      display: none;
+    }
+    .card {
+      width: 100%;
+      max-width: 320px;
+      padding: 26px 20px 18px;
+      border-radius: var(--radius);
+      background: #fff;
+      text-align: center;
+      animation: pop 0.25s ease-out;
+    }
+    .card h2 {
+      font-size: 26px;
+      color: var(--sky-text);
+    }
+    .card .big-emoji {
+      font-size: 54px;
+      line-height: 1.1;
+    }
+    .rules {
+      margin: 14px 0 4px;
+      text-align: left;
+      font-size: 14px;
+      line-height: 1.9;
+      color: var(--text);
+    }
+    .rules b {
+      color: var(--sky-text);
+    }
+    .final-score {
+      margin-top: 6px;
+      font-size: 52px;
+      font-weight: 800;
+      color: var(--red);
+      line-height: 1.1;
+    }
+    .new-best {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: var(--gold);
+      color: #5a3d00;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .new-best[hidden] {
+      display: none;
+    }
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      margin: 14px 0 4px;
+      padding: 10px 0;
+      border-radius: 12px;
+      background: #f2f8fd;
+    }
+    .stats div {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+    .stats b {
+      display: block;
+      font-size: 18px;
+      color: var(--sky-text);
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 999px;
+      background: var(--red);
+      color: #fff;
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .btn:active {
+      transform: scale(0.97);
+    }
+    .btn.gold {
+      background: var(--gold);
+      color: #5a3d00;
+    }
+    .btn:disabled {
+      opacity: 0.6;
+    }
+    .btn + .btn {
+      margin-top: 10px;
+    }
+    /* Score "bump" after doubling */
+    .final-score.bump {
+      animation: bump 0.4s ease-out;
+    }
+    @keyframes bump {
+      50% { transform: scale(1.3); }
+    }
+    .link-btn {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 6px 14px;
+      background: none;
+      color: var(--text-sub);
+      font-size: 14px;
+    }
+    @keyframes pop {
+      from { transform: scale(0.8); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    /* ---------- Loading screen (shown until the Phaser scene is ready) ---------- */
+    #loading {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: linear-gradient(180deg, #8fd3ff 0%, #bfe6ff 45%, #eaf7ff 100%);
+      color: var(--sky-text);
+      font-weight: 700;
+      transition: opacity 0.3s;
+    }
+    #loading.done {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #loading .emoji {
+      font-size: 56px;
+      animation: bob 1s ease-in-out infinite alternate;
+    }
+    #loading .bar {
+      width: 180px;
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(31, 78, 110, 0.15);
+      overflow: hidden;
+    }
+    #loading .bar i {
+      display: block;
+      height: 100%;
+      width: 0;
+      border-radius: 4px;
+      background: var(--red);
+      /* The CDN download has no real progress events, so ease towards 90%
+         and jump to 100% when the game is ready */
+      animation: load 4s cubic-bezier(0.1, 0.7, 0.3, 1) forwards;
+    }
+    #loading.done .bar i {
+      width: 100%;
+      animation: none;
+    }
+    #loading .retry {
+      margin-top: 4px;
+      padding: 10px 22px;
+      border-radius: 999px;
+      background: var(--red);
+      color: #fff;
+      font-weight: 700;
+    }
+    @keyframes load {
+      to { width: 90%; }
+    }
+    @keyframes bob {
+      to { transform: translateY(-8px); }
+    }
+
+    /* ---------- First-time tutorial hint ---------- */
+    #tutorial {
+      position: absolute;
+      top: calc(var(--safe-top) + 80px);
+      left: 50%;
+      z-index: 6;
+      transform: translateX(-50%);
+      width: max-content;
+      max-width: 88%;
+      padding: 10px 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 4px 14px rgba(31, 78, 110, 0.2);
+      color: var(--sky-text);
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.6;
+      text-align: center;
+      pointer-events: none;
+      animation: pop 0.25s ease-out;
+    }
+    #tutorial[hidden] {
+      display: none;
+    }
+
+    /* While paused, freeze the reload progress bar too */
+    #app.paused #reload .bar i {
+      animation-play-state: paused;
+    }
+
+    /* "New best!" celebration */
+    .new-best:not([hidden]) {
+      animation: celebrate 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), glow 1.2s ease-in-out 0.7s infinite alternate;
+    }
+    @keyframes celebrate {
+      0%   { transform: scale(0) rotate(-12deg); }
+      60%  { transform: scale(1.25) rotate(6deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+    @keyframes glow {
+      to { box-shadow: 0 0 14px rgba(242, 183, 5, 0.9); }
+    }
+
+    /* Landscape tip — same media query as the other games */
+    #rotate-tip {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: #bfe6ff;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--sky-text);
+      font-size: 16px;
+    }
+    #rotate-tip .icon {
+      font-size: 48px;
+    }
+    @media (orientation: landscape) and (max-height: 500px) {
+      #rotate-tip {
+        display: flex;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Phaser canvas is inserted here -->
+    <div id="game"></div>
+
+    <!-- Loading screen: covers everything until the game is ready -->
+    <div id="loading">
+      <div class="emoji">🎈</div>
+      <div id="loading-text">Loading…</div>
+      <div class="bar"><i></i></div>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud">
+      <a class="back" href="../" aria-label="Back to home">‹</a>
+      <div class="hud-item score"><span class="label">Score</span><b id="score">0</b></div>
+      <div class="hud-item time" id="time-box">
+        <span class="label">Time</span>
+        <div class="time-row">
+          <div class="timebar"><i id="time-bar"></i></div>
+          <b id="time">60s</b>
+        </div>
+      </div>
+      <div class="hud-item ammo" id="ammo-box"><span class="label">Ammo</span><b id="ammo">30/30</b></div>
+    </div>
+
+    <button id="btn-mute" aria-label="Toggle sound">🔊</button>
+
+    <!-- Reload banner -->
+    <div id="reload" hidden>
+      Reloading…
+      <div class="bar"><i></i></div>
+    </div>
+
+    <!-- First-time tutorial hint (shown once, see TUTORIAL_KEY in game.js) -->
+    <div id="tutorial" hidden>👆 Tap a balloon to pop it!<br>Watch out for the black 💣 bombs</div>
+
+    <!-- Pause screen (tab switched / window lost focus) -->
+    <div class="overlay" id="pause-screen" hidden>
+      <div class="card">
+        <div class="big-emoji">⏸</div>
+        <h2>Paused</h2>
+        <button class="btn" id="btn-resume">Resume</button>
+      </div>
+    </div>
+
+    <!-- Start screen -->
+    <div class="overlay" id="start-screen">
+      <div class="card">
+        <div class="big-emoji">🎈</div>
+        <h2>Balloon Pop</h2>
+        <div class="rules">
+          🎈 Regular balloon <b>+10</b><br>
+          🌟 Gold balloon <b>+50</b>, flies faster<br>
+          💣 Black bomb <b>-20</b>, don't hit it!<br>
+          ⏱ <b>60 seconds</b>, <b>30 shots</b> per clip, auto-reload when empty
+        </div>
+        <button class="btn" id="btn-start">Start</button>
+      </div>
+    </div>
+
+    <!-- Result screen -->
+    <div class="overlay" id="result-screen" hidden>
+      <div class="card">
+        <h2>Time's up!</h2>
+        <div class="final-score" id="final-score">0</div>
+        <div class="new-best" id="new-best" hidden>🎉 New record!</div>
+        <div class="stats">
+          <div><b id="final-best">0</b>Best</div>
+          <div><b id="final-accuracy">0%</b>Accuracy</div>
+          <div><b id="final-hits">0</b>Popped</div>
+        </div>
+        <!-- Rewarded ad: double this round's score (once per round).
+             data-noad-hide: hidden while ads are switched off in shared/ads.js -->
+        <button class="btn gold" id="btn-double" data-noad-hide>▶ Watch ad to double score</button>
+        <button class="btn" id="btn-again">Play again</button>
+        <a class="link-btn" href="../">Exit</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="rotate-tip">
+    <div class="icon">📱</div>
+    <div>Please rotate to portrait</div>
+  </div>
+
+  <!-- Bottom banner ad slot (filled by shared/ads.js; hidden while ads are switched off) -->
+  <div id="ad-banner"></div>
+
+  <!-- Phaser 3 from CDN, pinned version (same as the merge game; no Matter.js needed) -->
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+  <!-- Shared modules: analytics must load before ads -->
+  <script src="../shared/analytics.js?v=5"></script>
+  <script src="../shared/ads.js?v=6"></script>
+  <script src="../shared/sound.js?v=6"></script>
+  <!-- Game logic -->
+  <script src="game.js?v=8"></script>
+</body>
+</html>

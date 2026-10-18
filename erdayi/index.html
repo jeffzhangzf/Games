@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<!-- =========================================================
+  erdayi/index.html — "二打一"棋类游戏页面
+  用途：搭建页面骨架（顶部栏、对局状态栏、棋盘 SVG、底部操作按钮、
+        设置弹窗、规则弹窗、结束弹窗、横屏提示），再加载公共脚本和 game.js
+  不依赖任何游戏引擎：棋盘用 SVG 绘制，动画用 CSS transition
+  ========================================================= -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f0e3">
+  <title>Two Beat One — Free Online Folk Board Game vs AI</title>
+  <!-- SEO -->
+  <meta name="description" content="Two Beat One: a classic folk strategy board game. Line up two of your pieces against one enemy piece to capture it, and win by leaving your opponent with a single piece. Play the AI on 3 board sizes and 3 difficulty levels — free, no download.">
+  <meta name="keywords" content="two beat one,board game,strategy game,folk board game,play vs AI,free online game,browser game,no download">
+
+  <!-- Open Graph / 分享卡片 -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:site_name" content="Mini Games">
+  <meta property="og:title" content="Two Beat One — Can you beat the AI?">
+  <meta property="og:description" content="A classic folk board game: two in a row capture one. Play against the AI for free.">
+  <!-- TODO 上线后：og:url / og:image 需要真实域名下的绝对地址，例如
+       <meta property="og:url" content="https://<user>.github.io/<repo>/erdayi/">
+       <meta property="og:image" content="https://<user>.github.io/<repo>/erdayi/og.png">（1200×630） -->
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="../shared/style.css?v=2">
+
+  <style>
+    :root {
+      --page-bg: #f7f0e3;
+      --player: #ff7f50;   /* 玩家棋子颜色 ⚠ 与 game.js 中 COLORS 一致 */
+      --ai: #3d4b63;       /* 电脑棋子颜色 */
+    }
+    html, body {
+      background: var(--page-bg);
+      overflow: hidden;
+    }
+
+    /* 外层容器：竖向排列 顶部栏 / 状态栏 / 棋盘 / 底部按钮 */
+    #app {
+      position: fixed;
+      top: var(--safe-top);
+      bottom: var(--safe-bottom);
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---------- 顶部栏 ---------- */
+    #hud {
+      flex-shrink: 0;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      position: relative;
+    }
+    #hud .back {
+      font-size: 22px;
+      color: var(--text-sub);
+      padding: 4px 8px 4px 0;
+    }
+    #hud .title {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+    }
+    #hud .title h1 {
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    #hud .title .sub {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+    #hud .mute {
+      background: none;
+      font-size: 18px;
+      padding: 4px 0 4px 8px;
+      opacity: 0.75;
+    }
+
+    /* ---------- 对局状态栏 ---------- */
+    #status {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 4px 16px 0;
+    }
+    .side-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      border: 2px solid transparent;
+      transition: border-color 0.2s;
+      min-width: 92px;
+    }
+    .side-chip.ai {
+      justify-content: flex-end;
+    }
+    .side-chip.active {
+      border-color: currentColor; /* 轮到谁，谁的标签描边 */
+    }
+    .side-chip.player { color: var(--player); }
+    .side-chip.ai { color: var(--ai); }
+    .side-chip .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+    .side-chip .who {
+      color: var(--text);
+      font-weight: 600;
+    }
+    #turn-text {
+      flex: 1;
+      text-align: center;
+      font-size: 14px;
+      color: var(--text-sub);
+      line-height: 1.3;
+    }
+    #draw-warn {
+      display: block;
+      font-size: 11px;
+      color: #e85a4f;
+    }
+
+    /* ---------- 棋盘 ---------- */
+    #board-wrap {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 12px;
+    }
+    #board {
+      display: block;
+      touch-action: manipulation;
+    }
+    #board .hit {
+      fill: transparent;
+      cursor: pointer;
+    }
+    /* 棋子移动 / 被吃的动画（SVG 元素上的 CSS transform 以 viewBox 单位计） */
+    #board .piece {
+      transition: transform 0.25s ease-in-out, opacity 0.3s;
+    }
+    #board .piece.dead {
+      opacity: 0;
+    }
+    #board .capture-line {
+      animation: fade-out 0.9s ease-out forwards;
+    }
+    #board .hint-dot {
+      animation: pulse 1s ease-in-out infinite alternate;
+    }
+    @keyframes fade-out {
+      0%, 50% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    @keyframes pulse {
+      from { opacity: 0.45; }
+      to   { opacity: 0.85; }
+    }
+
+    /* ---------- 底部按钮 ---------- */
+    #controls {
+      flex-shrink: 0;
+      display: flex;
+      gap: 10px;
+      padding: 8px 16px 16px;
+    }
+    #controls button {
+      flex: 1;
+      padding: 12px 0;
+      border-radius: 999px;
+      background: #fff;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    #controls button:active {
+      transform: scale(0.97);
+    }
+    #controls button:disabled {
+      opacity: 0.4;
+    }
+    #controls .undo {
+      color: var(--primary);
+    }
+    #controls .undo small {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--text-sub);
+    }
+
+    /* ---------- 弹窗（设置 / 规则 / 结束 共用） ---------- */
+    .modal {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 24px;
+    }
+    .modal.hidden {
+      display: none;
+    }
+    .modal .box {
+      width: 100%;
+      max-width: 320px;
+      max-height: 100%;
+      overflow-y: auto;
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 24px 20px 20px;
+      text-align: center;
+      animation: pop 0.25s ease-out;
+    }
+    .modal h2 {
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+    .modal .btn {
+      display: block;
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 999px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .modal .btn:active {
+      transform: scale(0.97);
+    }
+    .modal .btn.secondary {
+      margin-top: 10px;
+      background: #fff;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+      padding: 12px;
+    }
+    /* 广告关闭时"看广告悔一步"被隐藏，"再来一局"升级为实心主按钮 */
+    html.no-ads #btn-end-undo + .btn.secondary {
+      margin-top: 16px;
+      background: var(--primary);
+      color: #fff;
+    }
+    .modal .btn.hidden,
+    .modal .link-btn.hidden {
+      display: none;
+    }
+    /* 结束弹窗底部的两个文字按钮（切换难度 · 退出）横向排列 */
+    .modal .links {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .modal .links .link-btn {
+      display: inline-block;
+      margin-top: 0;
+    }
+    .modal .link-btn {
+      margin-top: 12px;
+      background: none;
+      color: var(--text-sub);
+      font-size: 14px;
+      padding: 4px 12px;
+    }
+
+    /* 设置弹窗：分段选择 */
+    .section-label {
+      text-align: left;
+      font-size: 13px;
+      color: var(--text-sub);
+      margin: 12px 0 6px;
+    }
+    .seg {
+      display: flex;
+      gap: 8px;
+    }
+    .seg button {
+      flex: 1;
+      padding: 10px 4px;
+      border-radius: 12px;
+      background: #f5f6fa;
+      border: 2px solid transparent;
+      line-height: 1.3;
+    }
+    .seg button.on {
+      border-color: var(--primary);
+      background: #fff4ef;
+    }
+    .seg .name {
+      display: block;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .seg .desc {
+      display: block;
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+    .record {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--text-sub);
+    }
+
+    /* 规则弹窗 */
+    #rules-modal {
+      z-index: 20; /* 盖在设置弹窗之上 */
+    }
+    .rules {
+      text-align: left;
+      font-size: 14px;
+      line-height: 1.6;
+      padding-left: 20px;
+    }
+    .rules li + li {
+      margin-top: 6px;
+    }
+    .rules b {
+      color: var(--primary);
+    }
+    .rule-demo {
+      display: block;
+      margin: 12px auto 0;
+      width: 220px;
+      max-width: 100%;
+    }
+
+    /* 结束弹窗 */
+    .end-sub {
+      font-size: 14px;
+      color: var(--text-sub);
+    }
+
+    /* ---------- 新手提示（第一局，走出第一步前显示） ---------- */
+    #hint {
+      position: absolute;
+      left: 50%;
+      top: 104px;
+      z-index: 5;
+      transform: translateX(-50%);
+      width: max-content;
+      max-width: 90%;
+      padding: 8px 16px;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      pointer-events: none; /* 不挡住棋盘点击 */
+      animation: pop 0.25s ease-out;
+    }
+    #hint.hidden {
+      display: none;
+    }
+
+    /* ---------- 结束弹窗标题：赢了弹跳，输了摇头 ---------- */
+    #end-title.win {
+      color: var(--player);
+      animation: celebrate 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #end-title.lose {
+      animation: shake 0.5s ease-in-out;
+    }
+    @keyframes celebrate {
+      0%   { transform: scale(0.3) rotate(-10deg); }
+      60%  { transform: scale(1.2) rotate(4deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+    @keyframes shake {
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+
+    /* 横屏提示：⚠ 与 game.js 中 LANDSCAPE_QUERY 一致 */
+    #rotate-tip {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: var(--page-bg);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--text-sub);
+      font-size: 16px;
+    }
+    #rotate-tip .icon {
+      font-size: 48px;
+    }
+    @media (orientation: landscape) and (max-height: 500px) {
+      #rotate-tip {
+        display: flex;
+      }
+    }
+
+    @keyframes pop {
+      from { transform: scale(0.8); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部栏 -->
+    <div id="hud">
+      <a class="back" href="../" aria-label="Back to home">‹</a>
+      <div class="title">
+        <h1>Two Beat One</h1>
+        <div class="sub" id="game-sub">4×4 · Normal</div>
+      </div>
+      <button class="mute" id="btn-mute" aria-label="Toggle sound">🔊</button>
+    </div>
+
+    <!-- 对局状态：双方剩余棋子数 + 轮到谁 -->
+    <!-- 新手提示（只在第一局显示，见 game.js 中 CONFIG.HINT_KEY） -->
+    <div id="hint" class="hidden"></div>
+
+    <div id="status">
+      <div class="side-chip player" id="chip-player">
+        <span class="dot"></span><span class="who">You</span><span id="count-player">4</span>
+      </div>
+      <div id="turn-text">Your turn<span id="draw-warn"></span></div>
+      <div class="side-chip ai" id="chip-ai">
+        <span id="count-ai">4</span><span class="who">AI</span><span class="dot"></span>
+      </div>
+    </div>
+
+    <!-- 棋盘：内容由 game.js 生成 -->
+    <div id="board-wrap">
+      <svg id="board" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+
+    <!-- 底部操作 -->
+    <div id="controls">
+      <button class="undo" id="btn-undo" data-noad-hide>▶ Undo <small id="undo-left">3 left</small></button>
+      <button id="btn-open-setup">Settings</button>
+      <button id="btn-open-rules">Rules</button>
+    </div>
+
+    <!-- 设置弹窗（进入页面时显示；选项按钮由 game.js 生成） -->
+    <div id="setup-modal" class="modal hidden">
+      <div class="box">
+        <h2>Two Beat One</h2>
+        <div class="section-label">Board size</div>
+        <div class="seg" id="size-seg"></div>
+        <div class="section-label">AI difficulty</div>
+        <div class="seg" id="level-seg"></div>
+        <div class="record" id="record">Record: 0W 0L</div>
+        <button class="btn" id="btn-start">Start game</button>
+        <button class="link-btn hidden" id="btn-cancel-setup">Back to current game</button>
+        <button class="link-btn" id="btn-setup-rules">How to play</button>
+        <!-- 弹窗会盖住左上角的返回按钮，所以这里单独放一个 -->
+        <a class="btn secondary" href="../">Back to home</a>
+      </div>
+    </div>
+
+    <!-- 规则弹窗 -->
+    <div id="rules-modal" class="modal hidden">
+      <div class="box">
+        <h2>How to play</h2>
+        <ol class="rules">
+          <li>Each side starts on its back line. <b>You play orange and move first.</b></li>
+          <li>On your turn, move one piece <b>one step</b> along a line to an empty neighboring point. No diagonals, no jumping.</li>
+          <li>After your move, if a row or column has <b>two of your pieces side by side, right next to one enemy piece</b>, and <b>no other pieces on that line</b>, the enemy piece is captured.</li>
+          <li>It doesn't count if the enemy walks into that spot themselves, or if there's a fourth piece anywhere on the line (any distance, either color).</li>
+          <li>You win when the opponent has only 1 piece left or can't move. If nobody captures for a long time, it's a draw.</li>
+        </ol>
+        <!-- 示意图：橙橙黑 → 吃掉黑子 -->
+        <svg class="rule-demo" viewBox="0 0 220 60" aria-hidden="true">
+          <line x1="10" y1="30" x2="210" y2="30" stroke="#c9a46c" stroke-width="3"/>
+          <circle cx="30" cy="30" r="17" fill="#ff7f50"/>
+          <circle cx="80" cy="30" r="17" fill="#ff7f50"/>
+          <circle cx="130" cy="30" r="17" fill="#3d4b63"/>
+          <line x1="117" y1="17" x2="143" y2="43" stroke="#e74c3c" stroke-width="4"/>
+          <line x1="143" y1="17" x2="117" y2="43" stroke="#e74c3c" stroke-width="4"/>
+          <circle cx="180" cy="30" r="6" fill="#c9a46c"/>
+        </svg>
+        <button class="btn" id="btn-close-rules">Got it</button>
+      </div>
+    </div>
+
+    <!-- 结束弹窗 -->
+    <div id="end-modal" class="modal hidden">
+      <div class="box">
+        <h2 id="end-title">You won!</h2>
+        <div class="end-sub" id="end-sub"></div>
+        <div class="record" id="end-record"></div>
+        <!-- 输了且还有悔棋次数时显示：看激励广告退回到上一步 -->
+        <button class="btn" id="btn-end-undo" data-noad-hide>▶ Watch ad to undo</button>
+        <button class="btn secondary" id="btn-again">Play again</button>
+        <div class="links">
+          <button class="link-btn" id="btn-end-setup">Change difficulty</button>
+          <!-- 退出：回小游戏合集首页（弹窗挡住了左上角的返回按钮） -->
+          <a class="link-btn" href="../">Exit</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 横屏提示 -->
+  <div id="rotate-tip">
+    <div class="icon">📱</div>
+    <div>Please rotate to portrait</div>
+  </div>
+
+  <!-- 公共脚本：埋点必须在广告之前引入
+       ?v=… 是版本号：改了脚本后把它改一下，浏览器就不会继续用缓存里的旧文件 -->
+  <script src="../shared/analytics.js?v=5"></script>
+  <script src="../shared/ads.js?v=6"></script>
+  <script src="../shared/sound.js?v=6" onerror="console.error('Sound file failed to load: ' + this.src)"></script>
+  <!-- AI（纯函数，不碰页面）和游戏逻辑 -->
+  <script src="ai.js?v=4"></script>
+  <script src="game.js?v=7"></script>
+</body>
+</html>
