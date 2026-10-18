@@ -5,7 +5,7 @@
         设置弹窗、规则弹窗、结束弹窗、横屏提示），再加载公共脚本和 game.js
   不依赖任何游戏引擎：棋盘用 SVG 绘制，动画用 CSS transition
   ========================================================= -->
-<html lang="en">
+<html lang="en" class="has-sitebar">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
@@ -28,7 +28,7 @@
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../shared/style.css?v=2">
+  <link rel="stylesheet" href="../shared/style.css?v=4">
 
   <style>
     :root {
@@ -479,10 +479,18 @@
   </style>
 </head>
 <body>
+  <!-- Site bar: brand + an obvious way back to all games (styles: shared/style.css section 8) -->
+  <header class="sitebar">
+    <div class="sitebar-inner">
+      <a class="site-logo" href="../" aria-label="Mini Games home"><span class="site-logo-mark" aria-hidden="true">MG</span>Mini Games</a>
+      <a class="sitebar-home" href="../">← All Games</a>
+    </div>
+  </header>
+
   <div id="app">
     <!-- 顶部栏 -->
     <div id="hud">
-      <a class="back" href="../" aria-label="Back to home">‹</a>
+      <span class="back" aria-hidden="true"></span>
       <div class="title">
         <h1>Two Beat One</h1>
         <div class="sub" id="game-sub">4×4 · Normal</div>
@@ -530,6 +538,11 @@
         <button class="link-btn" id="btn-setup-rules">How to play</button>
         <!-- 弹窗会盖住左上角的返回按钮，所以这里单独放一个 -->
         <a class="btn secondary" href="../">Back to home</a>
+        <!-- Site links (styles: shared/style.css section 8) -->
+        <footer class="mini-footer">
+          <a href="../about.html">About</a><a href="../contact.html">Contact</a><a href="../privacy.html">Privacy</a><a href="../terms.html">Terms</a>
+          <p>© 2026 Mini Games</p>
+        </footer>
       </div>
     </div>
 
@@ -583,6 +596,11 @@
           <!-- 退出：回小游戏合集首页（弹窗挡住了左上角的返回按钮） -->
           <a class="link-btn" href="../">Exit</a>
         </div>
+        <!-- Site links (styles: shared/style.css section 8) -->
+        <footer class="mini-footer">
+          <a href="../about.html">About</a><a href="../contact.html">Contact</a><a href="../privacy.html">Privacy</a><a href="../terms.html">Terms</a>
+          <p>© 2026 Mini Games</p>
+        </footer>
       </div>
     </div>
   </div>
@@ -597,7 +615,7 @@
        ?v=… 是版本号：改了脚本后把它改一下，浏览器就不会继续用缓存里的旧文件 -->
   <script src="../shared/analytics.js?v=6"></script>
   <script src="../shared/ads.js?v=6"></script>
-  <script src="../shared/sound.js?v=6" onerror="console.error('Sound file failed to load: ' + this.src)"></script>
+  <script src="../shared/sound.js?v=8" onerror="console.error('Sound file failed to load: ' + this.src)"></script>
   <!-- AI（纯函数，不碰页面）和游戏逻辑 -->
   <script src="ai.js?v=4"></script>
   <script src="game.js?v=9"></script>

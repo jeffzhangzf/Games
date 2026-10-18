@@ -4,7 +4,7 @@
   用途：搭建页面骨架（游戏画布容器、顶部分数栏、结束弹窗、难度选择弹窗、横屏提示），
         通过 CDN 加载 Phaser 3，再加载公共脚本和游戏逻辑 game.js
   ========================================================= -->
-<html lang="en">
+<html lang="en" class="has-sitebar">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
@@ -27,7 +27,7 @@
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../shared/style.css?v=2">
+  <link rel="stylesheet" href="../shared/style.css?v=4">
 
   <style>
     html, body {
@@ -420,6 +420,14 @@
   </style>
 </head>
 <body>
+  <!-- Site bar: brand + an obvious way back to all games (styles: shared/style.css section 8) -->
+  <header class="sitebar">
+    <div class="sitebar-inner">
+      <a class="site-logo" href="../" aria-label="Mini Games home"><span class="site-logo-mark" aria-hidden="true">MG</span>Mini Games</a>
+      <a class="sitebar-home" href="../">← All Games</a>
+    </div>
+  </header>
+
   <div id="app">
     <!-- 游戏画布由 Phaser 自动插入到这里 -->
     <div id="game"></div>
@@ -437,7 +445,6 @@
     <!-- 顶部分数栏 -->
     <div id="hud">
       <div class="hud-left">
-        <a class="back" href="../" aria-label="Back to home">‹</a>
         <button class="mute" id="btn-mute" aria-label="Toggle sound">🔊</button>
       </div>
       <div class="score-box">
@@ -480,6 +487,11 @@
           <!-- 退出：回小游戏合集首页（弹窗挡住了左上角的返回按钮） -->
           <a class="link-btn" href="../">Exit</a>
         </div>
+        <!-- Site links (styles: shared/style.css section 8) -->
+        <footer class="mini-footer">
+          <a href="../about.html">About</a><a href="../contact.html">Contact</a><a href="../privacy.html">Privacy</a><a href="../terms.html">Terms</a>
+          <p>© 2026 Mini Games</p>
+        </footer>
       </div>
     </div>
 
@@ -491,6 +503,11 @@
         <div id="diff-list"></div>
         <!-- 不想玩了：回首页选其他游戏（弹窗会盖住左上角的返回按钮，所以这里单独放一个） -->
         <a class="btn secondary" id="btn-exit" href="../">Back to home</a>
+        <!-- Site links (styles: shared/style.css section 8) -->
+        <footer class="mini-footer">
+          <a href="../about.html">About</a><a href="../contact.html">Contact</a><a href="../privacy.html">Privacy</a><a href="../terms.html">Terms</a>
+          <p>© 2026 Mini Games</p>
+        </footer>
       </div>
     </div>
   </div>
@@ -506,7 +523,7 @@
   <!-- 公共脚本：埋点必须在广告之前引入 -->
   <script src="../shared/analytics.js?v=6"></script>
   <script src="../shared/ads.js?v=6"></script>
-  <script src="../shared/sound.js?v=6"></script>
+  <script src="../shared/sound.js?v=8"></script>
   <!-- 游戏逻辑 -->
   <!-- Phaser 是从 CDN 加载的：加载失败时给出提示，而不是白屏 -->
   <script>

@@ -1,6 +1,7 @@
 /* =========================================================
  * shared/style.css — 公共样式
  * 用途：所有页面（首页 + 各个游戏）共用的基础样式
+ *   - Section 8: site bar + mini footer used on every game page
  *   - 移动端优先、竖屏布局
  *   - 禁止文字选中、禁止长按弹出菜单、去掉点击高亮
  *   - 适配 iPhone 刘海屏 / 底部横条（安全区域）
@@ -307,4 +308,99 @@ html.no-ads #ad-banner {
   background: rgba(0, 0, 0, 0.05);
   padding: 1px 5px;
   border-radius: 4px;
+}
+
+/* ---------- 8. Game pages: site bar + mini footer ----------
+ * Every game page has <html class="has-sitebar"> and a .sitebar header as the first
+ * thing in <body>. The bar is fixed to the top; pushing --safe-top down by its height
+ * moves every game's own layout (which already starts at var(--safe-top)) below it,
+ * so no game needs its own offset rules. */
+:root {
+  --sitebar-h: 44px;
+  --safe-top-raw: env(safe-area-inset-top, 0px);
+}
+html.has-sitebar {
+  --safe-top: calc(var(--safe-top-raw) + var(--sitebar-h));
+}
+
+.sitebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 25;
+  height: calc(var(--sitebar-h) + var(--safe-top-raw));
+  padding-top: var(--safe-top-raw);
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.sitebar-inner {
+  max-width: 480px;
+  height: var(--sitebar-h);
+  margin: 0 auto;
+  padding: 0 calc(12px + var(--safe-right)) 0 calc(12px + var(--safe-left));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sitebar .site-logo {
+  gap: 7px;
+  font-size: 15px;
+  color: var(--text);
+}
+.sitebar .site-logo-mark {
+  width: 26px;
+  height: 26px;
+  font-size: 11px;
+}
+/* The obvious "back" action: a solid pill, at least 44px tall to tap */
+.sitebar-home {
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.sitebar-home:active {
+  transform: scale(0.96);
+}
+/* Bigger invisible tap area around the pill */
+.sitebar-home {
+  position: relative;
+}
+.sitebar-home::after {
+  content: "";
+  position: absolute;
+  inset: -5px -4px;
+}
+
+/* Compact site links for game menus / result screens */
+.mini-footer {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-sub);
+}
+.mini-footer a {
+  display: inline-block;
+  padding: 4px 2px;
+  color: inherit;
+}
+.mini-footer a + a::before {
+  content: "·";
+  margin: 0 6px;
+  opacity: 0.6;
+}
+.mini-footer p {
+  margin: 0;
+  font-size: 11px;
+  opacity: 0.8;
 }

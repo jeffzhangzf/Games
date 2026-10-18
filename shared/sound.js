@@ -281,6 +281,43 @@
         tone({ freq: f, type: 'triangle', duration: 0.24, volume: 0.26, delay: 0.07 * i });
       });
       tone({ freq: 2093, type: 'sine', duration: 0.5, volume: 0.1, delay: 0.38 });
+    },
+
+    /* ----- Brick Builder ----- */
+
+    // Brick snaps into place: crisp plastic "click" (noise tick + short high blip)
+    snap: function () {
+      noise({ duration: 0.04, volume: 0.35, filter: 'highpass', freq: 3000 });
+      tone({ freq: 1400, freqEnd: 900, type: 'square', duration: 0.05, volume: 0.07 });
+      tone({ freq: 2200, type: 'sine', duration: 0.06, volume: 0.1, delay: 0.02 });
+    },
+
+    // Wrong spot: short low "boop"
+    wrong: function () {
+      tone({ freq: 220, freqEnd: 150, type: 'triangle', duration: 0.16, volume: 0.28 });
+    },
+
+    // Hint revealed: two soft sparkly notes
+    hint: function () {
+      tone({ freq: 1047, type: 'sine', duration: 0.18, volume: 0.16 });
+      tone({ freq: 1568, type: 'sine', duration: 0.3, volume: 0.14, delay: 0.1 });
+    },
+
+    // Star counted on the results screen: bright ding, a step higher for each star (params.n = 1, 2, 3...)
+    star: function (p) {
+      var f = 880 * Math.pow(2, Math.min((p.n || 1) - 1, 8) * 2 / 12);
+      tone({ freq: f, type: 'triangle', duration: 0.18, volume: 0.22 });
+      tone({ freq: f * 2, type: 'sine', duration: 0.25, volume: 0.08, delay: 0.03 });
+    },
+
+    // Model finished: rising arpeggio ending on a bright chord
+    complete: function () {
+      [523, 659, 784, 1047].forEach(function (f, i) {
+        tone({ freq: f, type: 'triangle', duration: 0.22, volume: 0.24, delay: 0.08 * i });
+      });
+      [1047, 1319, 1568].forEach(function (f) {
+        tone({ freq: f, type: 'sine', duration: 0.6, volume: 0.1, delay: 0.34 });
+      });
     }
   };
 

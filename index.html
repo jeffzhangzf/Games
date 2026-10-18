@@ -13,7 +13,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#f5f6fa">
   <title>Mini Games — Free Online Games, No Download</title>
-  <meta name="description" content="Free mini games you can play right in your browser — no download, no sign-up. Number Merge, Balloon Pop, Idle Farm, a gamer personality quiz and more.">
+  <meta name="description" content="Free mini games you can play right in your browser — no download, no sign-up. Number Merge, Brick Builder puzzles, Balloon Pop, Idle Farm, a gamer personality quiz and more.">
 
   <meta name="keywords" content="free online games,browser games,mini games,no download games,html5 games,casual games">
 
@@ -31,7 +31,7 @@
   <meta name="twitter:card" content="summary_large_image">
 
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="shared/style.css?v=3">
+  <link rel="stylesheet" href="shared/style.css?v=4">
 
   <!-- 首页专用样式（只有几行，直接写在这里） -->
   <style>
@@ -89,6 +89,12 @@
     /* 打气球图标：同样的渐变圆，天蓝色系 */
     .game-icon.balloon {
       background: linear-gradient(135deg, #8fd3ff, #4d9cfe);
+      font-size: 32px;
+    }
+
+    /* Brick Builder icon: same gradient circle, brick-red, emoji icon */
+    .game-icon.bricks {
+      background: linear-gradient(135deg, #ff8a7a, #e0483a);
       font-size: 32px;
     }
 
@@ -194,6 +200,15 @@
           <span class="badge">★ Editor's Pick</span>
           <h2>Two Beat One</h2>
           <p>A classic folk board game: line up two pieces against one to capture it. Outsmart the AI!</p>
+        </div>
+        <span class="play-btn">Play</span>
+      </a>
+
+      <a class="game-card" href="bricks/">
+        <div class="game-icon bricks">🧱</div>
+        <div class="game-info">
+          <h2>Brick Builder</h2>
+          <p>Follow the blueprint and build with colorful bricks!</p>
         </div>
         <span class="play-btn">Play</span>
       </a>

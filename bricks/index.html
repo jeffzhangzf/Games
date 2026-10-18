@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<!-- =========================================================
+  bricks/index.html — "Brick Builder" game page
+  Purpose: page skeleton for the level select (home), build and results screens,
+           then loads the shared scripts, the model data and game.js.
+  No game engine: grids and previews are drawn with Canvas, the brick tray is DOM.
+  ========================================================= -->
+<html lang="en" class="has-sitebar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#eef3f8">
+  <title>Brick Builder — Free Online Building Game</title>
+  <!-- SEO -->
+  <meta name="description" content="Brick Builder is a free online puzzle game: copy each pixel-art blueprint by fitting colorful bricks into the grid. 40 brick building puzzles from easy to brain-melting, with rotation, tricky shapes and decoy bricks. No download — play instantly on phone or desktop.">
+  <meta name="keywords" content="brick building game,puzzle game,free online game,no download,block puzzle,pixel art puzzle,polyomino puzzle,browser game">
+
+  <!-- Open Graph / social cards (used when the link is shared) -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:site_name" content="Mini Games">
+  <meta property="og:title" content="Brick Builder — Can you rebuild the blueprint?">
+  <meta property="og:description" content="40 brick building puzzles: fit the bricks, match every color, beat par time. Free puzzle game, no download.">
+  <link rel="canonical" href="https://myminigamesbar.com/bricks/">
+  <meta property="og:url" content="https://myminigamesbar.com/bricks/">
+  <meta property="og:image" content="https://myminigamesbar.com/bricks/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+
+  <!-- Poppins from Google Fonts. display=swap: text shows at once in the system font
+       and switches when the font arrives, so the font never blocks the first paint -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap">
+  <link rel="stylesheet" href="../shared/style.css?v=4">
+
+  <style>
+    :root {
+      --page-bg: #eef3f8;
+      --star: #f5b301;
+      --done: #27ae60;
+    }
+    html, body {
+      background: var(--page-bg);
+      font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    /* Outer container: fills the screen above the banner, phone width on desktop */
+    #app {
+      position: fixed;
+      top: var(--safe-top);
+      bottom: calc(var(--ad-height) + var(--safe-bottom));
+      left: var(--safe-left);
+      right: var(--safe-right);
+      margin: 0 auto;
+      max-width: 480px;
+    }
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .screen.hidden {
+      display: none;
+    }
+
+    /* ---------- Top bar (shared by all screens) ---------- */
+    .topbar {
+      flex-shrink: 0;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      position: relative;
+    }
+    .topbar .icon-btn {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      font-size: 22px;
+      color: var(--text-sub);
+      border-radius: 50%;
+    }
+    .topbar .icon-btn:active {
+      background: rgba(0, 0, 0, 0.06);
+    }
+    .topbar .center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    /* Big star total on the home screen */
+    .star-total {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .star-total .star-icon {
+      font-size: 28px;
+    }
+    .star-total.bump {
+      animation: bump 0.4s ease-out;
+    }
+
+    /* ---------- Home: pack list ---------- */
+    .tagline {
+      flex-shrink: 0;
+      text-align: center;
+      font-size: 14px;
+      color: var(--text-sub);
+      padding: 0 16px 10px;
+    }
+    /* Scrolls the pack list and the site links below it together */
+    .home-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 20px;
+    }
+    .pack-list {
+      padding: 4px 16px 0;
+    }
+    .pack {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      padding: 14px 12px 12px;
+    }
+    .pack + .pack {
+      margin-top: 14px;
+    }
+    .pack-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 0 4px 10px;
+    }
+    .pack-head h2 {
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .pack-meta {
+      font-size: 13px;
+      color: var(--text-sub);
+      white-space: nowrap;
+    }
+
+    /* Model thumbnails: 4 per row */
+    .model-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .model-tile {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 4px;
+      border-radius: 12px;
+      background: #f4f7fa;
+      transition: transform 0.1s;
+      overflow: visible;
+    }
+    .model-tile:active {
+      transform: scale(0.95);
+    }
+    .model-tile canvas {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1;
+    }
+    .model-name {
+      width: 100%;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    /* Green check badge on models already built */
+    .model-stars {
+      font-size: 12px;
+      line-height: 1;
+      letter-spacing: 1px;
+      color: var(--star);
+    }
+    .model-stars.none {
+      color: #c9d1da;
+    }
+    .model-tile .check {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--done);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 20px;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Locked pack */
+    .pack.locked {
+      cursor: pointer;
+      background: #f9fafb;
+    }
+    .pack.locked:active {
+      transform: scale(0.99);
+    }
+    .pack.locked .pack-head h2 {
+      color: var(--text-sub);
+    }
+    .lock-body {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 4px 2px;
+    }
+    .lock-icon {
+      flex-shrink: 0;
+      font-size: 34px;
+      opacity: 0.7;
+    }
+    .lock-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .lock-text {
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .progress {
+      height: 10px;
+      margin-top: 8px;
+      border-radius: 999px;
+      background: #e3e8ee;
+      overflow: hidden;
+    }
+    .progress .bar {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #ffd34e, var(--star));
+      transition: width 0.4s;
+    }
+    .progress-label {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    /* ---------- Build screen ---------- */
+    .build-title {
+      font-size: 17px;
+      font-weight: 800;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    /* Par timer under the title; turns red once over par */
+    .build-timer {
+      margin-top: 1px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-sub);
+      font-variant-numeric: tabular-nums;
+    }
+    .build-timer.over {
+      color: #e74c3c;
+    }
+    /* Stars still within reach (top right): built it / no hints / under par */
+    .reward-chip {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      font-size: 15px;
+      letter-spacing: 1px;
+      color: var(--star);
+      white-space: nowrap;
+    }
+    .reward-chip .lost {
+      color: #d5dbe2;
+    }
+    .reward-chip.drop {
+      animation: shake 0.4s;
+    }
+
+    /* Blueprint + progress + hint */
+    .blueprint-row {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 16px 8px;
+    }
+    .blueprint-card {
+      position: relative;
+      flex-shrink: 0;
+      padding: 6px;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+      cursor: zoom-in;
+    }
+    .blueprint-card .zoom-badge {
+      position: absolute;
+      right: -4px;
+      bottom: -4px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+      font-size: 12px;
+      line-height: 22px;
+      text-align: center;
+    }
+    .blueprint-card canvas {
+      display: block;
+    }
+    .blueprint-side {
+      flex: 1;
+      min-width: 0;
+    }
+    .bp-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-sub);
+    }
+    .bp-count {
+      margin-top: 2px;
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .blueprint-side .progress {
+      margin-top: 6px;
+    }
+    /* Undo / start over / hint */
+    .tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .tool-btn {
+      flex-shrink: 0;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .tool-btn:active {
+      transform: scale(0.92);
+    }
+    .tool-btn:disabled {
+      opacity: 0.35;
+      transform: none;
+      cursor: default;
+    }
+    .hint-btn {
+      padding: 8px 12px;
+      white-space: nowrap;
+      border-radius: 999px;
+      border: 2px solid #ffd34e;
+      background: #fff6d1;
+      color: #8a6400;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .hint-btn:active {
+      transform: scale(0.96);
+    }
+    .hint-btn:disabled {
+      opacity: 0.45;
+      transform: none;
+      cursor: default;
+    }
+
+    /* Build grid: the page must never scroll while bricks are dragged over it */
+    .board-wrap {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 12px;
+      touch-action: none;
+    }
+    #board {
+      display: block;
+      border-radius: 6px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Brick tray: horizontal scroll. pan-x lets the browser scroll sideways,
+       while an upward swipe on a brick is left to game.js to start a drag */
+    .tray {
+      flex-shrink: 0;
+      height: 104px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 16px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior: contain;
+      scrollbar-width: none;
+      background: #fff;
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+      touch-action: pan-x;
+    }
+    .tray::-webkit-scrollbar {
+      display: none;
+    }
+    .tray-item {
+      flex-shrink: 0;
+      position: relative;
+      width: 76px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      background: #f1f4f8;
+      touch-action: pan-x;
+      cursor: grab;
+      transition: opacity 0.15s;
+    }
+    .tray-item canvas {
+      display: block;
+      pointer-events: none;
+    }
+    .tray-item .count {
+      position: absolute;
+      right: 4px;
+      bottom: 4px;
+      min-width: 22px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: #2d3436;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+    }
+    .tray-item.lifted {
+      opacity: 0.45;
+    }
+    .tray-item.empty {
+      opacity: 0.3;
+      filter: grayscale(1);
+      cursor: default;
+    }
+    .tray-item.shake {
+      animation: shake 0.4s;
+    }
+    .tray-item.spin canvas {
+      animation: spin-in 0.2s ease-out;
+    }
+    /* Rotating packs: a little arrow says "tap to turn me" */
+    .tray-item .rot-badge {
+      position: absolute;
+      left: 5px;
+      top: 3px;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-sub);
+    }
+
+    /* Short screens (e.g. iPhone SE; the site bar takes 44px on top): tighten the
+       chrome so 10-row grids keep cells >= 32px */
+    @media (max-height: 740px) {
+      #build-screen .topbar {
+        height: 50px;
+      }
+      .tray {
+        height: 86px;
+      }
+      .tray-item {
+        height: 70px;
+      }
+      .blueprint-row {
+        padding-bottom: 4px;
+      }
+      .bp-count {
+        font-size: 16px;
+      }
+      .tools {
+        margin-top: 6px;
+      }
+      .tool-btn {
+        width: 34px;
+        height: 34px;
+      }
+      .hint-btn {
+        padding: 6px 10px;
+      }
+    }
+    /* Even shorter (iPhone SE with the banner ad on) */
+    @media (max-height: 620px) {
+      #build-screen .topbar {
+        height: 46px;
+      }
+      .tray {
+        height: 80px;
+      }
+      .tray-item {
+        height: 66px;
+      }
+      .bp-label {
+        display: none;
+      }
+      .board-wrap {
+        padding: 4px 12px;
+      }
+    }
+
+    /* Brick following the finger / mouse */
+    .drag-ghost {
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 30;
+      pointer-events: none;
+      opacity: 0.8;
+      filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.25));
+    }
+    .drag-ghost.shake {
+      animation: shake 0.3s;
+    }
+    .drag-ghost.returning {
+      transition: left 0.25s ease-in, top 0.25s ease-in, opacity 0.25s ease-in;
+      opacity: 0;
+    }
+
+    /* ---------- Results screen ---------- */
+    .result-body {
+      flex: 1;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 20px 24px;
+      text-align: center;
+    }
+    .result-title {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--primary);
+      animation: pop 0.35s ease-out;
+    }
+    .result-model {
+      margin-top: 2px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-sub);
+    }
+    .result-preview {
+      margin-top: 14px;
+      padding: 8px;
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+    .result-preview canvas {
+      display: block;
+    }
+    .result-stars {
+      margin-top: 16px;
+      min-height: 40px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 4px;
+      font-size: 36px;
+      line-height: 1;
+    }
+    /* Three star slots: grey until earned, then they pop in gold */
+    .result-stars .s {
+      display: inline-block;
+      color: #d5dbe2;
+      font-size: 44px;
+      transition: color 0.2s, transform 0.35s cubic-bezier(0.3, 1.6, 0.5, 1);
+    }
+    .result-stars .s.on {
+      color: var(--star);
+      transform: scale(1.15);
+      text-shadow: 0 2px 6px rgba(245, 179, 1, 0.45);
+    }
+    .criteria {
+      width: 100%;
+      max-width: 280px;
+      margin-top: 10px;
+      padding: 8px 14px;
+      border-radius: 12px;
+      background: #fff;
+      font-size: 14px;
+      text-align: left;
+    }
+    .crit {
+      padding: 3px 0;
+      font-weight: 600;
+    }
+    .crit.ok {
+      color: var(--done);
+    }
+    .crit.miss {
+      color: var(--text-sub);
+    }
+    .result-earned {
+      margin-top: 12px;
+      font-size: 22px;
+      font-weight: 800;
+    }
+    .practice-note {
+      max-width: 290px;
+      margin-top: 16px;
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--text-sub);
+    }
+    .btn-double {
+      width: 100%;
+      max-width: 300px;
+      margin-top: 16px;
+      padding: 13px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #ffd34e, #f5b301);
+      color: #5c4300;
+      font-size: 16px;
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(245, 179, 1, 0.35);
+    }
+    .btn-double:active {
+      transform: scale(0.97);
+    }
+    .btn-double:disabled {
+      background: #e3f5ea;
+      color: var(--done);
+      box-shadow: none;
+      transform: none;
+      cursor: default;
+    }
+    .result-total.bump {
+      animation: bump 0.4s ease-out;
+    }
+    .result-total {
+      margin-top: 16px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .result-actions {
+      width: 100%;
+      max-width: 300px;
+      margin-top: 4px;
+    }
+    .result-body .hidden {
+      display: none;
+    }
+
+    /* ---------- Modals ---------- */
+    .modal {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 24px;
+    }
+    .modal.hidden {
+      display: none;
+    }
+    .modal .box {
+      width: 100%;
+      max-width: 320px;
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 24px 20px 20px;
+      text-align: center;
+      animation: pop 0.25s ease-out;
+    }
+    .modal .emoji {
+      font-size: 44px;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .modal h2 {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+    .modal p {
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--text-sub);
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 999px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 700;
+    }
+    .btn:active {
+      transform: scale(0.97);
+    }
+    .btn.secondary {
+      margin-top: 10px;
+      padding: 12px;
+      background: #fff;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+
+    /* ---------- Toast (short tip at the bottom) ---------- */
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 24px;
+      z-index: 20;
+      max-width: calc(100% - 32px);
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: rgba(45, 52, 54, 0.92);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, 12px);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @keyframes pop {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+    @keyframes spin-in {
+      from { transform: rotate(-90deg); }
+      to { transform: rotate(0); }
+    }
+    /* Blueprint zoom popup */
+    #zoom-modal .box {
+      max-width: 380px;
+      padding: 16px;
+      cursor: zoom-out;
+    }
+    #zoom-modal canvas {
+      display: block;
+      margin: 0 auto;
+    }
+    #zoom-modal p {
+      margin-top: 10px;
+      font-size: 13px;
+    }
+    @keyframes bump {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.18); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Site bar: brand + an obvious way back to all games (styles: shared/style.css section 8) -->
+  <header class="sitebar">
+    <div class="sitebar-inner">
+      <a class="site-logo" href="../" aria-label="Mini Games home"><span class="site-logo-mark" aria-hidden="true">MG</span>Mini Games</a>
+      <a class="sitebar-home" href="../">← All Games</a>
+    </div>
+  </header>
+
+  <div id="app">
+    <!-- ===== Home: level select ===== -->
+    <section id="home-screen" class="screen">
+      <header class="topbar">
+        <span class="icon-btn" aria-hidden="true"></span>
+        <div class="center">
+          <div class="star-total" id="star-total" aria-label="Total stars">
+            <span class="star-icon">⭐</span><span id="star-count">0</span>
+          </div>
+        </div>
+        <button class="icon-btn" id="btn-mute" aria-label="Toggle sound">🔊</button>
+      </header>
+      <p class="tagline">Pick a blueprint and start building!</p>
+      <div class="home-scroll">
+        <div class="pack-list" id="pack-list"></div>
+        <!-- Site links (styles: shared/style.css section 8) -->
+        <footer class="mini-footer">
+          <a href="../about.html">About</a><a href="../contact.html">Contact</a><a href="../privacy.html">Privacy</a><a href="../terms.html">Terms</a>
+          <p>© 2026 Mini Games</p>
+        </footer>
+      </div>
+    </section>
+
+    <!-- ===== Build screen ===== -->
+    <section id="build-screen" class="screen hidden">
+      <header class="topbar">
+        <button class="icon-btn" id="btn-build-back" aria-label="Back to levels">‹</button>
+        <div class="center">
+          <div class="build-title" id="build-title"></div>
+          <div class="build-timer" id="build-timer"></div>
+        </div>
+        <div class="reward-chip" id="reward-chip" aria-label="Stars still within reach"></div>
+      </header>
+      <div class="blueprint-row">
+        <div class="blueprint-card" id="blueprint-card" role="button" aria-label="Zoom blueprint">
+          <canvas id="blueprint"></canvas>
+          <span class="zoom-badge" aria-hidden="true">🔍</span>
+        </div>
+        <div class="blueprint-side">
+          <div class="bp-label">Blueprint</div>
+          <div class="bp-count" id="bp-count">0 / 0 squares</div>
+          <div class="progress"><div class="bar" id="bp-bar"></div></div>
+          <div class="tools">
+            <button class="tool-btn" id="btn-undo" aria-label="Undo">↶</button>
+            <button class="tool-btn" id="btn-reset" aria-label="Start over">⟲</button>
+            <button class="hint-btn" id="btn-hint">💡 Hint</button>
+          </div>
+        </div>
+      </div>
+      <div class="board-wrap" id="board-wrap"><canvas id="board"></canvas></div>
+      <div class="tray" id="tray"></div>
+    </section>
+
+    <!-- ===== Results ===== -->
+    <section id="result-screen" class="screen hidden">
+      <div class="result-body">
+        <h1 class="result-title" id="result-title">Level Complete!</h1>
+        <div class="result-model" id="result-model"></div>
+        <div class="result-preview"><canvas id="result-preview"></canvas></div>
+        <div class="result-stars" id="result-stars" aria-hidden="true"></div>
+        <div class="criteria">
+          <div class="crit ok">✓ Built it!</div>
+          <div class="crit" id="crit-hint"></div>
+          <div class="crit" id="crit-par"></div>
+        </div>
+        <div class="result-earned" id="result-earned"></div>
+        <p class="practice-note" id="practice-note"></p>
+        <!-- Hidden by ads.js while ads are switched off (data-noad-hide) -->
+        <button class="btn-double" id="btn-double" data-noad-hide>▶ Watch Ad to Double Stars</button>
+        <div class="result-total">Total: <span id="result-total">0</span> ⭐</div>
+        <div class="result-actions">
+          <button class="btn" id="btn-result-next">Next Level ›</button>
+          <button class="btn secondary" id="btn-result-again">Play Again</button>
+          <button class="btn secondary" id="btn-result-home">Back to Levels</button>
+        </div>
+        <!-- Site links (styles: shared/style.css section 8) -->
+        <footer class="mini-footer">
+          <a href="../about.html">About</a><a href="../contact.html">Contact</a><a href="../privacy.html">Privacy</a><a href="../terms.html">Terms</a>
+          <p>© 2026 Mini Games</p>
+        </footer>
+
+      </div>
+    </section>
+
+    <!-- Hint offer (rewarded ad). With ads off, ads.js swaps in the data-noad-text copy -->
+    <div id="hint-modal" class="modal hidden">
+      <div class="box">
+        <div class="emoji">💡</div>
+        <h2 data-noad-text="Need a hint?">Watch ad for a hint?</h2>
+        <p>We'll place one brick for you — and clear any that block the solution. Heads up: you'll miss the no-hint ⭐ on this level.</p>
+        <button class="btn" id="btn-hint-yes" data-noad-text="Show me!">▶ Watch Ad</button>
+        <button class="btn secondary" id="btn-hint-no">Not now</button>
+      </div>
+    </div>
+
+    <!-- Leave-level confirmation -->
+    <div id="leave-modal" class="modal hidden">
+      <div class="box">
+        <div class="emoji">🚧</div>
+        <h2>Leave this level?</h2>
+        <p>Your progress will be lost.</p>
+        <button class="btn" id="btn-leave-stay">Keep Building</button>
+        <button class="btn secondary" id="btn-leave-go">Leave</button>
+      </div>
+    </div>
+
+    <!-- New pack unlocked (shown on the results screen) -->
+    <div id="unlock-modal" class="modal hidden">
+      <div class="box">
+        <div class="emoji">🎉</div>
+        <h2 id="unlock-title">New pack unlocked!</h2>
+        <p>Fresh blueprints are waiting for you. Let's build!</p>
+        <button class="btn" id="btn-unlock-ok">Awesome!</button>
+      </div>
+    </div>
+
+    <!-- Pack rules tip (once per pack) -->
+    <div id="tip-modal" class="modal hidden">
+      <div class="box">
+        <div class="emoji">💡</div>
+        <h2 id="tip-title"></h2>
+        <p id="tip-text"></p>
+        <button class="btn" id="btn-tip-ok">Let's build!</button>
+      </div>
+    </div>
+
+    <!-- Blueprint zoom (tap anywhere to close) -->
+    <div id="zoom-modal" class="modal hidden">
+      <div class="box">
+        <canvas id="zoom-canvas"></canvas>
+        <p>Tap anywhere to close</p>
+      </div>
+    </div>
+
+    <!-- First-visit welcome -->
+    <div id="tutorial-modal" class="modal hidden">
+      <div class="box">
+        <div class="emoji">🧱</div>
+        <h2>Welcome to Brick Builder!</h2>
+        <p>Pick a blueprint and build it with bricks. Earn stars to unlock more models.</p>
+        <button class="btn" id="btn-tutorial-ok">Got it!</button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <!-- Bottom banner ad slot (filled by shared/ads.js showBanner) -->
+  <div id="ad-banner"></div>
+
+  <script src="../shared/analytics.js?v=6"></script>
+  <script src="../shared/ads.js?v=6"></script>
+  <script src="../shared/sound.js?v=8"></script>
+  <script src="models.js?v=3"></script>
+  <script src="levels.js?v=5"></script>
+  <script src="game.js?v=9"></script>
+</body>
+</html>

@@ -15,6 +15,13 @@ A collection of free browser mini games for English-speaking players. Pure stati
 │   ├── index.html
 │   ├── ai.js           # Rules + AI (pure logic)
 │   └── game.js         # Board rendering, turn flow, modals
+├── bricks/             # Brick Builder (brick-tiling puzzle, Canvas)
+│   ├── index.html
+│   ├── game.js         # Screens, drag & drop, rules, hint solver, stars
+│   ├── models.js       # 40 blueprints + brick shapes / palette (add puzzles here)
+│   ├── levels.js       # Packs: unlock stars, rotation, par time
+│   └── tools/
+│       └── make-model.js  # Dev helper: pixel art -> model (node, not loaded by the game)
 ├── balloon/            # Balloon Pop (Phaser 3, 60-second rounds)
 │   ├── index.html
 │   └── game.js
@@ -30,9 +37,20 @@ A collection of free browser mini games for English-speaking players. Pure stati
 │   ├── ads.js          # Ad manager
 │   ├── analytics.js    # Event tracking
 │   ├── sound.js        # Sound effects (Web Audio synth, no audio files)
-│   └── style.css       # Shared styles
+│   └── style.css       # Shared styles (section 8: site bar + mini footer on game pages)
 └── README.md
 ```
+
+## Site bar & footer on game pages
+
+Every game page starts with the same thin site bar (MG logo + an orange **← All Games** button) and has
+`<html class="has-sitebar">`. That class pushes `--safe-top` down by the bar's height (`--sitebar-h`, 44px),
+so each game's own layout — which already starts at `var(--safe-top)` — moves below the bar without
+game-specific CSS. Full-screen games can't show a page footer, so a compact `.mini-footer`
+(About · Contact · Privacy · Terms · ©) sits in their menu and result screens instead:
+start / game-over popups (Number Merge, Two Beat One, Balloon Pop), start and result pages (Quiz),
+the shop sheet (Idle Farm), level select and results (Brick Builder). Styles: `shared/style.css` section 8.
+When adding a game, copy the `.sitebar` header and a `.mini-footer` from an existing game page.
 
 ## Local preview
 
@@ -223,6 +241,108 @@ A classic folk strategy board game (Chinese *Er Da Yi*, "two hit one"), played a
 ### Events
 
 `game_start` (size / level), `game_end` (size / level / result / moves), `undo_used` (only with ads on).
+
+## Brick Builder (bricks/)
+
+A brick-tiling puzzle. Each level shows a pixel-art blueprint; the player copies it onto an empty grid
+with the bricks in the tray. A brick can go anywhere as long as every square it covers matches the
+blueprint's color there — **any layout that fills the picture wins** (there are usually several).
+Pure HTML/CSS/JS: Canvas for the grid and pictures, DOM for the tray, Poppins from Google Fonts.
+
+### Gameplay
+
+- Drag a brick from the tray onto the grid (on touch: swipe **up** off the card; sideways scrolls the tray).
+  Wrong color or overlap → it shakes and flies back.
+- Tap a placed brick to take it back; drag it to move it. **Undo** (also Ctrl/Cmd+Z) and **Start over** (undoable).
+- Rotating packs: tap a tray card to turn the brick 90° (desktop: press R while dragging).
+- Tap the blueprint to zoom in. The grid itself never shows outlines, colors or shading.
+- **Hint** (rewarded ad, max 3 per level): a solver finds a full solution that keeps the player's bricks and
+  places one brick. At a dead end it first removes the bricks that differ from the built-in solution.
+- Leaving a level with bricks placed asks for confirmation (back button and closing the tab).
+
+### Packs (`bricks/levels.js`)
+
+| Pack | Unlock | Levels | What's new |
+|---|---|---|---|
+| Starter | 0 ⭐ | 6 | 6×6 pictures, small bricks |
+| Builder | 8 ⭐ | 8 | 4-long bars, L/J bricks |
+| Architect | 25 ⭐ | 8 | **Rotation**, T/S/Z bricks |
+| Master | 45 ⭐ | 9 | Pictures up to 10×10 |
+| Legend | 70 ⭐ | 9 | 5-square bricks + 3 **decoy** bricks per level |
+
+To add a pack, append an object to `packs` (order = display order):
+
+```js
+{
+  id: 'expert',                       // unique; stored in bricks_unlocked_packs
+  name: 'Expert Pack',
+  requiredStars: 100,                 // total stars needed
+  rules: { rotate: true, parPerBrick: 15 },  // rotation on/off; par = bricks × parPerBrick seconds
+  tip: { title: 'New!', text: '...' },       // shown once on the first level played in the pack
+  models: ['dragon', 'castle2']       // ids from models.js
+}
+```
+
+Keep every `requiredStars` reachable without the double-stars ad (each level gives at most 3 ⭐;
+the budget is written at the top of `levels.js`). Unknown model ids are reported in the console.
+
+### Adding a model (`bricks/models.js`)
+
+Each model is one object in `list`:
+
+| Field | Meaning |
+|---|---|
+| `id` | Unique id (used in `levels.js` and saved progress — don't rename after launch) |
+| `name` | Name shown to players |
+| `gridSize` | `{ w, h }` in cells, max 10 × 10 (keeps cells ≥ 32 px on a 375-px phone) |
+| `bricks` | `{ x, y, shape, rot, color }` — one known solution. The picture is the union of these bricks, and they decide what the tray offers |
+| `decoys` | Optional `{ shape, rot, color }` extra tray bricks the picture doesn't need |
+| `par` | Optional par time in seconds (default: pack `parPerBrick` × number of bricks, rounded up to 5 s) |
+
+`shape` is a key of `SHAPES` (I1–I5, O4, L3, T4, S4, Z4, L4, J4, P5, U5, V5, L5, T5), `rot` is 0–3 quarter
+turns clockwise, `x / y` is the top-left of the rotated brick, `color` is a key of `COLORS`
+(red, blue, green, yellow, white, black, orange, purple, pink, brown — no hex values).
+
+Cutting a picture into bricks by hand is tedious, so use the helper (plain Node, no npm):
+
+```bash
+# art.txt: one row per line, one letter per cell, '.' = empty
+#   r red  b blue  g green  y yellow  w white  k black  o orange  p purple  i pink  n brown
+node bricks/tools/make-model.js art.txt --id pine --name "Pine Tree" --pack 3
+```
+
+It prints a ready-to-paste model (with an ASCII sketch comment) cut with the shapes of that pack.
+Then add the id to a pack in `levels.js` and bump `models.js?v=` / `levels.js?v=` in `bricks/index.html`.
+On page load `validate()` logs any overlap, out-of-bounds brick, unknown shape or color to the console.
+
+### Stars
+
+Each level: ⭐ built it · ⭐ no hints used · ⭐ finished within par time (timer pauses during popups and
+when the tab is hidden). Replays only add the improvement over your best (1★ then 3★ → +1 then +2;
+an already-3★ level gives nothing: "Already completed. No stars this time, but you can still practice!").
+"Watch Ad to Double Stars" doubles the stars added by that run (once; hidden while ads are off).
+The results screen calls `showInterstitial()` 2 s after opening (or when leaving, if sooner); a
+"New pack unlocked" popup follows the interstitial.
+
+### localStorage
+
+| Key | Contents |
+|---|---|
+| `bricks_stars` | Total stars |
+| `bricks_best` | `{ modelId: best stars 1–3 }` |
+| `bricks_completed` | Ids of models built at least once (✓ on the level select) |
+| `bricks_unlocked_packs` | Ids of unlocked packs (stay unlocked even if thresholds change) |
+| `bricks_tutorial_seen` | Welcome popup seen (`1`) |
+| `bricks_tips_seen` | Pack ids whose rules tip was shown |
+| `sound_muted` | Site-wide mute setting (shared by all games) |
+
+### Events
+
+`bricks_home_view`, `bricks_model_select` (model_id), `bricks_locked_click` (pack_id),
+`bricks_level_start` (model_id), `bricks_place_correct` (model_id), `bricks_place_wrong` (model_id / reason: color, overlap, bounds),
+`bricks_hint_used` (model_id / cleared), `bricks_reset` (model_id),
+`bricks_level_complete` (model_id / stars_earned / stars_run / used_hints / time_sec),
+`bricks_stars_doubled` (model_id), `bricks_pack_unlocked` (pack_id).
 
 ## Balloon Pop (balloon/)
 

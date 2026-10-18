@@ -7,7 +7,7 @@
   Visual theme: carnival balloon stall. No realistic guns anywhere — the
   player aims with a toy-style crosshair only.
   ========================================================= -->
-<html lang="en">
+<html lang="en" class="has-sitebar">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
@@ -30,7 +30,7 @@
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../shared/style.css?v=2">
+  <link rel="stylesheet" href="../shared/style.css?v=4">
 
   <style>
     :root {
@@ -456,6 +456,14 @@
   </style>
 </head>
 <body>
+  <!-- Site bar: brand + an obvious way back to all games (styles: shared/style.css section 8) -->
+  <header class="sitebar">
+    <div class="sitebar-inner">
+      <a class="site-logo" href="../" aria-label="Mini Games home"><span class="site-logo-mark" aria-hidden="true">MG</span>Mini Games</a>
+      <a class="sitebar-home" href="../">← All Games</a>
+    </div>
+  </header>
+
   <div id="app">
     <!-- Phaser canvas is inserted here -->
     <div id="game"></div>
@@ -469,7 +477,6 @@
 
     <!-- HUD -->
     <div id="hud">
-      <a class="back" href="../" aria-label="Back to home">‹</a>
       <div class="hud-item score"><span class="label">Score</span><b id="score">0</b></div>
       <div class="hud-item time" id="time-box">
         <span class="label">Time</span>
@@ -513,6 +520,11 @@
           ⏱ <b>60 seconds</b>, <b>30 shots</b> per clip, auto-reload when empty
         </div>
         <button class="btn" id="btn-start">Start</button>
+        <!-- Site links (styles: shared/style.css section 8) -->
+        <footer class="mini-footer">
+          <a href="../about.html">About</a><a href="../contact.html">Contact</a><a href="../privacy.html">Privacy</a><a href="../terms.html">Terms</a>
+          <p>© 2026 Mini Games</p>
+        </footer>
       </div>
     </div>
 
@@ -532,6 +544,11 @@
         <button class="btn gold" id="btn-double" data-noad-hide>▶ Watch ad to double score</button>
         <button class="btn" id="btn-again">Play again</button>
         <a class="link-btn" href="../">Exit</a>
+        <!-- Site links (styles: shared/style.css section 8) -->
+        <footer class="mini-footer">
+          <a href="../about.html">About</a><a href="../contact.html">Contact</a><a href="../privacy.html">Privacy</a><a href="../terms.html">Terms</a>
+          <p>© 2026 Mini Games</p>
+        </footer>
       </div>
     </div>
   </div>
@@ -549,7 +566,7 @@
   <!-- Shared modules: analytics must load before ads -->
   <script src="../shared/analytics.js?v=6"></script>
   <script src="../shared/ads.js?v=6"></script>
-  <script src="../shared/sound.js?v=6"></script>
+  <script src="../shared/sound.js?v=8"></script>
   <!-- Game logic -->
   <script src="game.js?v=8"></script>
 </body>
