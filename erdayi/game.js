@@ -157,6 +157,7 @@ const ui = {
   endRecord: $('end-record'),
   btnEndUndo: $('btn-end-undo'),
   btnAgain: $('btn-again'),
+  orderModal: $('order-modal'),
   btnEndSetup: $('btn-end-setup')
 };
 
@@ -177,6 +178,7 @@ const state = {
   noCapture: 0,       // 连续无吃子步数
   moveCount: 0,       // 本局总步数（双方合计）
   history: [],        // 玩家每次走棋前的局面快照，用于悔棋
+  first: 0,           // 本局先手方（PLAYER / AI），玩家开局前自己选；选之前 turn 为 0，谁都不能走
   hintOn: false,      // 第一局的操作提示是否显示中
   undoLeft: 0,
   token: 0            // 局面版本号：开新局 / 悔棋时 +1，用来作废还没执行的电脑走棋
@@ -361,6 +363,7 @@ function updateStatus() {
 
   let text;
   if (!state.started) text = 'Choose a level';
+  else if (!state.over && !state.turn) text = 'Choose who moves first';
   else if (state.over) text = { win: 'You won', lose: 'You lost', draw: 'Draw' }[state.result];
   else if (!myTurn) text = 'AI is thinking…';
   else text = state.lastMove && state.lastMove.side === AI ? 'AI moved — your turn' : 'Your turn';
@@ -380,13 +383,14 @@ function updateStatus() {
  * 8. 对局流程
  * ========================================================= */
 
-/** 开新局 */
+/** 开新局：摆好棋盘，然后让玩家选先手 / 后手（见 beginPlay） */
 function startGame(size, level) {
   state.size = size;
   state.level = level;
   state.nb = ErDaYi.buildNeighbors(size);
   state.board = ErDaYi.createBoard(size);
-  state.turn = PLAYER;
+  state.turn = 0;
+  state.first = 0;
   state.started = true;
   state.over = false;
   state.result = null;
@@ -407,6 +411,16 @@ function startGame(size, level) {
   updateStatus();
 
   trackEvent(EVENTS.GAME_START, { game: 'erdayi', size: size, level: level });
+  ui.orderModal.classList.remove('hidden');
+}
+
+/** 选好先后手：先手方开始走棋 */
+function beginPlay(first) {
+  state.first = first;
+  state.turn = first;
+  renderMarks();
+  updateStatus();
+  if (first === AI) scheduleAiMove();
 }
 
 /**
@@ -536,7 +550,8 @@ function endGame(result) {
   storageSet(statsKey(state.size, state.level), JSON.stringify(st));
 
   trackEvent(EVENTS.GAME_END, {
-    game: 'erdayi', size: state.size, level: state.level, result: result, moves: state.moveCount
+    game: 'erdayi', size: state.size, level: state.level, result: result, moves: state.moveCount,
+    first: state.first === PLAYER ? 'player' : 'ai' // 用来观察先手 / 后手的胜率差异
   });
 
   setTimeout(() => {
@@ -649,7 +664,8 @@ function showEndModal() {
   ui.endTitle.className = state.result === 'draw' ? '' : state.result;
   const left = ErDaYi.countSide(state.board, PLAYER);
   ui.endSub.textContent = BOARD_SIZES[state.size].name + ' · ' + LEVELS[state.level].name +
-    ' · ' + state.moveCount + ' moves · ' + left + ' pieces left';
+    ' · ' + (state.first === PLAYER ? 'you' : 'AI') + ' moved first · ' +
+    state.moveCount + ' moves · ' + left + ' pieces left';
   ui.endRecord.textContent = statsText(loadStats(state.size, state.level));
   ui.btnEndUndo.classList.toggle('hidden', !canUndo());
   ui.endModal.classList.remove('hidden');
@@ -679,6 +695,15 @@ ui.btnStart.addEventListener('click', () => {
   startGame(pending.size, pending.level);
 });
 ui.btnCancelSetup.addEventListener('click', () => ui.setupModal.classList.add('hidden'));
+
+// 选先手 / 后手：点了就开始
+ui.orderModal.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-first]');
+  if (!btn) return;
+  ui.orderModal.classList.add('hidden');
+  Sound.play('tap');
+  beginPlay(btn.dataset.first === 'player' ? PLAYER : AI);
+});
 ui.btnSetupRules.addEventListener('click', showRules);
 ui.btnCloseRules.addEventListener('click', () => {
   ui.rulesModal.classList.add('hidden');

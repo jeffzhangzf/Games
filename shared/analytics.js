@@ -28,6 +28,9 @@
     REVIVE_USED: 'revive_used', // 使用了"看广告复活"
     UNDO_USED: 'undo_used',     // 使用了"看广告悔棋"（二打一）
 
+    // 首页
+    GAME_CARD_CLICK: 'game_card_click', // 点了首页的游戏卡片，参数：{ game, featured, position }
+
     // 挂机农场
     IDLE_START: 'idle_start',                             // 第一次进入游戏
     CROP_PLANTED: 'crop_planted',                         // 种植，参数：{ crop_id }

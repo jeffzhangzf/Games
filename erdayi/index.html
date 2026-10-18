@@ -17,14 +17,17 @@
 
   <!-- Open Graph / 分享卡片 -->
   <meta property="og:type" content="website">
-  <meta property="og:locale" content="zh_CN">
+  <meta property="og:locale" content="en_US">
   <meta property="og:site_name" content="Mini Games">
   <meta property="og:title" content="Two Beat One — Can you beat the AI?">
   <meta property="og:description" content="A classic folk board game: two in a row capture one. Play against the AI for free.">
-  <!-- TODO 上线后：og:url / og:image 需要真实域名下的绝对地址，例如
-       <meta property="og:url" content="https://<user>.github.io/<repo>/erdayi/">
-       <meta property="og:image" content="https://<user>.github.io/<repo>/erdayi/og.png">（1200×630） -->
+  <link rel="canonical" href="https://myminigamesbar.com/erdayi/">
+  <meta property="og:url" content="https://myminigamesbar.com/erdayi/">
+  <meta property="og:image" content="https://myminigamesbar.com/erdayi/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../shared/style.css?v=2">
 
   <style>
@@ -384,6 +387,50 @@
       display: none;
     }
 
+    /* ---------- 先手 / 后手选择弹窗 ---------- */
+    .order-pick {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .order-pick button {
+      flex: 1;
+      padding: 16px 8px 14px;
+      border-radius: 14px;
+      background: #f3f4f7;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .order-pick button:active {
+      transform: scale(0.95);
+    }
+    .order-pick .dot {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--player);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .order-pick .dot.ai {
+      background: var(--ai);
+    }
+    .order-pick .name {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .order-pick .desc {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
     /* ---------- 结束弹窗标题：赢了弹跳，输了摇头 ---------- */
     #end-title.win {
       color: var(--player);
@@ -491,7 +538,7 @@
       <div class="box">
         <h2>How to play</h2>
         <ol class="rules">
-          <li>Each side starts on its back line. <b>You play orange and move first.</b></li>
+          <li>Each side starts on its back line. <b>You play orange.</b> Before each game, <b>you choose</b> whether to move first or second.</li>
           <li>On your turn, move one piece <b>one step</b> along a line to an empty neighboring point. No diagonals, no jumping.</li>
           <li>After your move, if a row or column has <b>two of your pieces side by side, right next to one enemy piece</b>, and <b>no other pieces on that line</b>, the enemy piece is captured.</li>
           <li>It doesn't count if the enemy walks into that spot themselves, or if there's a fourth piece anywhere on the line (any distance, either color).</li>
@@ -508,6 +555,17 @@
           <circle cx="180" cy="30" r="6" fill="#c9a46c"/>
         </svg>
         <button class="btn" id="btn-close-rules">Got it</button>
+      </div>
+    </div>
+
+    <!-- 先手 / 后手选择：每局开始前由玩家决定（逻辑见 game.js 的 beginPlay） -->
+    <div id="order-modal" class="modal hidden">
+      <div class="box">
+        <h2>Who moves first?</h2>
+        <div class="order-pick">
+          <button data-first="player"><span class="dot">1</span><span class="name">Move first</span><span class="desc">You open the game</span></button>
+          <button data-first="ai"><span class="dot ai">2</span><span class="name">Move second</span><span class="desc">AI opens, you reply</span></button>
+        </div>
       </div>
     </div>
 
@@ -537,11 +595,11 @@
 
   <!-- 公共脚本：埋点必须在广告之前引入
        ?v=… 是版本号：改了脚本后把它改一下，浏览器就不会继续用缓存里的旧文件 -->
-  <script src="../shared/analytics.js?v=5"></script>
+  <script src="../shared/analytics.js?v=6"></script>
   <script src="../shared/ads.js?v=6"></script>
   <script src="../shared/sound.js?v=6" onerror="console.error('Sound file failed to load: ' + this.src)"></script>
   <!-- AI（纯函数，不碰页面）和游戏逻辑 -->
   <script src="ai.js?v=4"></script>
-  <script src="game.js?v=7"></script>
+  <script src="game.js?v=9"></script>
 </body>
 </html>

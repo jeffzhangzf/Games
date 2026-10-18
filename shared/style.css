@@ -188,3 +188,123 @@ html.no-ads #ad-banner {
   color: var(--text-sub);
   font-size: 13px;
 }
+
+/* ---------- 7. 站点页头 / 页脚 / 文档页（首页和 About、Privacy 等页面共用） ---------- */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 4px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* 左侧 Logo：纯 CSS 圆形徽标 + 站点名 */
+.site-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+}
+.site-logo-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffb347, #ff7f50);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.site-nav {
+  display: flex;
+  gap: 4px;
+}
+.site-nav a {
+  padding: 8px 10px;          /* 保证点击区域够大 */
+  border-radius: 999px;
+  font-size: 14px;
+  color: var(--text-sub);
+}
+.site-nav a[aria-current="page"] {
+  color: var(--text);
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.site-footer {
+  margin-top: 32px;
+  padding: 20px 4px 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 4px;
+  list-style: none;
+  margin-bottom: 12px;
+}
+.footer-links a {
+  display: inline-block;
+  padding: 6px 10px;
+}
+.footer-links a:hover,
+.site-nav a:hover {
+  color: var(--primary);
+}
+.site-footer p + p {
+  margin-top: 6px;
+}
+
+/* 文档页（About / Privacy / Terms / Contact）：允许选中复制文字 */
+.doc {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+  padding: 24px 4px 0;
+  line-height: 1.65;
+  font-size: 15px;
+}
+.doc h1 {
+  font-size: 26px;
+  line-height: 1.25;
+  margin-bottom: 4px;
+}
+.doc .doc-meta {
+  color: var(--text-sub);
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+.doc h2 {
+  font-size: 18px;
+  margin: 24px 0 8px;
+}
+.doc p,
+.doc ul {
+  margin-bottom: 12px;
+}
+.doc ul {
+  padding-left: 22px;
+}
+.doc li + li {
+  margin-top: 4px;
+}
+.doc a {
+  color: var(--primary);
+  text-decoration: underline;
+}
+.doc code {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 13px;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1px 5px;
+  border-radius: 4px;
+}

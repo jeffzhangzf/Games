@@ -3,6 +3,7 @@
   index.html — 网站首页（游戏入口）
   用途：展示所有小游戏卡片，点击进入对应游戏
   - 移动端优先，竖屏布局
+  - 页头（Logo + 导航）、页脚（About / Contact / Privacy / Terms + 版权），样式在 shared/style.css 第 7 节
   - 底部固定横幅广告位 #ad-banner
   ========================================================= -->
 <html lang="en">
@@ -14,18 +15,34 @@
   <title>Mini Games — Free Online Games, No Download</title>
   <meta name="description" content="Free mini games you can play right in your browser — no download, no sign-up. Number Merge, Balloon Pop, Idle Farm, a gamer personality quiz and more.">
 
-  <link rel="stylesheet" href="shared/style.css?v=2">
+  <meta name="keywords" content="free online games,browser games,mini games,no download games,html5 games,casual games">
+
+  <!-- 分享预览（与各游戏页一致） -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:site_name" content="Mini Games">
+  <meta property="og:title" content="Mini Games — Free Online Games, No Download">
+  <meta property="og:description" content="Free mini games you can play right in your browser — no download, no sign-up.">
+  <link rel="canonical" href="https://myminigamesbar.com/">
+  <meta property="og:url" content="https://myminigamesbar.com/">
+  <meta property="og:image" content="https://myminigamesbar.com/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="shared/style.css?v=3">
 
   <!-- 首页专用样式（只有几行，直接写在这里） -->
   <style>
-    .header {
+    .hero {
       padding: 24px 4px 20px;
     }
-    .header h1 {
+    .hero h1 {
       font-size: 28px;
       font-weight: 700;
     }
-    .header p {
+    .hero p {
       margin-top: 4px;
       color: var(--text-sub);
       font-size: 14px;
@@ -107,6 +124,21 @@
       overflow: hidden;
     }
 
+    /* 推荐卡片：橙色描边 + 标题上方的小标签。
+       换推荐游戏时，把 featured 类和 .badge 挪到另一张卡片上即可 */
+    .game-card.featured {
+      box-shadow: 0 0 0 2px rgba(255, 127, 80, 0.55), 0 4px 16px rgba(255, 127, 80, 0.18);
+    }
+    .badge {
+      display: block;
+      margin-bottom: 2px;
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
     .play-btn {
       flex-shrink: 0;
       padding: 8px 16px;
@@ -126,11 +158,24 @@
   </style>
 </head>
 <body>
-  <main class="page">
-    <header class="header">
-      <h1>Mini Games</h1>
+  <div class="page">
+  <!-- 站点页头：Logo + 导航（About 等页面用同一份结构） -->
+  <header class="site-header">
+    <a class="site-logo" href="./" aria-label="Mini Games home">
+      <span class="site-logo-mark" aria-hidden="true">MG</span>
+      Mini Games
+    </a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="./" aria-current="page">Games</a>
+      <a href="about.html">About</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Free Online Mini Games</h1>
       <p>Free · No download · Play instantly</p>
-    </header>
+    </section>
 
     <!-- 游戏列表：以后新增游戏，复制一个 <a class="game-card"> 修改即可 -->
     <section class="game-list">
@@ -143,9 +188,10 @@
         <span class="play-btn">Play</span>
       </a>
 
-      <a class="game-card" href="erdayi/">
+      <a class="game-card featured" href="erdayi/">
         <div class="game-icon erdayi">2v1</div>
         <div class="game-info">
+          <span class="badge">★ Editor's Pick</span>
           <h2>Two Beat One</h2>
           <p>A classic folk board game: line up two pieces against one to capture it. Outsmart the AI!</p>
         </div>
@@ -183,15 +229,40 @@
     <p class="coming-soon">More games coming soon…</p>
   </main>
 
+  <!-- 站点页脚：法律/联系页面链接 + 版权（About 等页面用同一份结构） -->
+  <footer class="site-footer">
+    <ul class="footer-links">
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="privacy.html">Privacy Policy</a></li>
+      <li><a href="terms.html">Terms of Use</a></li>
+    </ul>
+    <p>All games are free to play in your browser. Progress is saved only on your device.</p>
+    <p>© 2026 Mini Games. All rights reserved.</p>
+  </footer>
+  </div>
+
   <!-- 底部横幅广告位：内容由 shared/ads.js 的 showBanner() 填充
        当前显示灰色"广告位"占位块；以后接入真实广告只需修改 ads.js 里的 showBanner -->
   <div id="ad-banner"></div>
 
-  <script src="shared/analytics.js?v=5"></script>
+  <script src="shared/analytics.js?v=6"></script>
   <script src="shared/ads.js?v=6"></script>
   <script>
     // 显示底部横幅广告
     showBanner('ad-banner');
+
+    // 游戏卡片点击统计：featured 区分推荐卡片，position（从 1 开始）用来排除"排得靠前本来就点得多"的影响
+    var cards = Array.prototype.slice.call(document.querySelectorAll('.game-card'));
+    cards.forEach(function (card, i) {
+      card.addEventListener('click', function () {
+        trackEvent(EVENTS.GAME_CARD_CLICK, {
+          game: card.getAttribute('href').replace(/\/$/, ''),
+          featured: card.classList.contains('featured'),
+          position: i + 1
+        });
+      });
+    });
   </script>
 </body>
 </html>

@@ -70,14 +70,22 @@ Static files only — no build step. Push the whole folder to GitHub.
    Branch `main`, folder `/ (root)` → Save. After 1–2 minutes the site is live at
    `https://<username>.github.io/games/`.
 4. From then on, `git add . && git commit -m "..." && git push` republishes automatically.
+5. **Custom domain `myminigamesbar.com`**: the `CNAME` file in the repo root already holds the domain.
+   - At your domain registrar, add DNS records for the apex domain: four `A` records
+     `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`,
+     plus a `CNAME` record `www` → `<username>.github.io`.
+   - Repo → Settings → Pages → Custom domain: `myminigamesbar.com` → Save, wait for the DNS check,
+     then tick **Enforce HTTPS**.
+   - Every page already has `canonical` / `og:url` pointing at `https://myminigamesbar.com/…`;
+     `robots.txt` and `sitemap.xml` are at the root. Submit the sitemap in Google Search Console.
 
 ### Pre-launch checklist
 
 - [ ] `plan.md` is a development spec and would be published too — move it out or add it to `.gitignore` if you don't want it public.
-- [ ] Replace `og:url` / `og:image` in every game's `index.html` (search for `TODO`) with real URLs, and add a 1200×630 preview image to each folder.
+- [ ] After deploying, check the share previews (1200×630 `og.png` at the root and in each game folder) with a link-preview tool such as the Facebook Sharing Debugger.
+- [ ] When adding a page or game, also add it to `sitemap.xml` (and bump its `<lastmod>` when a page changes a lot).
 - [ ] Set `DEBUG` to `false` in `shared/analytics.js` (stops printing events to the console).
 - [ ] Test on real phones (iOS Safari + Android Chrome): saving the quiz share image, the native share sheet, rotating the device.
-- [ ] Optional custom domain: Settings → Pages → Custom domain, then add the CNAME record at your domain registrar.
 
 ### Cache busting after edits
 
@@ -102,6 +110,16 @@ All events go through `trackEvent()` in `shared/analytics.js`, so no game code n
 3. In `shared/analytics.js`, uncomment the `window.gtag('event', name, params)` block under the TODO in `trackEvent`.
 4. Verify: GA → Reports → Realtime, play a round, and `game_start` etc. should appear within seconds.
    To filter reports by parameters (`score`, `result_type`, …), register them under Admin → Custom definitions.
+
+### Is the "Editor's Pick" card working?
+
+Home-page card clicks send `game_card_click` with `game` (folder name), `featured` (true / false) and
+`position` (1 = top card). Register `game`, `featured` and `position` as event-scoped custom dimensions, then:
+
+- **Click-through rate per card** = `game_card_click` count for that card ÷ home-page `page_view` count.
+- Compare a game's CTR **before and after** it gets the badge, at the **same position** — higher cards
+  get more clicks anyway, so only compare rows with equal `position`.
+- Give it at least a week or two of traffic before drawing conclusions.
 
 ## Adding real ads
 
@@ -132,8 +150,8 @@ Steps (example: Google AdSense + H5 Games Ads; you need an approved AdSense acco
    The SDK has its own frequency capping; you can keep or remove `INTERSTITIAL_EVERY_N_GAMES`.
 3. **Banner**: create a display ad unit in AdSense and swap the placeholder in `showBanner` for an `<ins class="adsbygoogle">` (see the comment there).
 4. **Flip the switch**: set `ADS_ENABLED` to `true`. Hidden "watch ad" buttons reappear automatically.
-5. **ads.txt**: AdSense asks for an `ads.txt` at the domain root. A GitHub Pages project site
-   (`username.github.io/games/`) isn't the domain root, so you'll need a custom domain first.
+5. **ads.txt**: AdSense asks for an `ads.txt` at the domain root. With the custom domain, just add an
+   `ads.txt` file to the repo root (AdSense shows its one-line content), served at `https://myminigamesbar.com/ads.txt`.
 
 ## Number Merge (merge/)
 
@@ -180,7 +198,7 @@ A classic folk strategy board game (Chinese *Er Da Yi*, "two hit one"), played a
 
 ### Rules
 
-- Each side starts on its back line; the player (orange) moves first. Each turn, move one piece one step along a line to an empty neighbor — no diagonals, no jumping.
+- Each side starts on its back line; the player plays orange. Before every game the player chooses to move first or second; the end screen and the `game_end` event (`first: player / ai`) record who started. Each turn, move one piece one step along a line to an empty neighbor — no diagonals, no jumping.
 - After your move, if a row or column has **two of your pieces side by side, right next to one enemy piece**, **and no other pieces on that line**, the enemy piece is captured.
 - It doesn't count if the enemy walks into that spot. You win when the opponent has 1 piece left or can't move; 60 moves in a row (both sides) without a capture is a draw.
 
@@ -292,8 +310,8 @@ Other settings (advance delay, which question triggers the interstitial, trait b
 
 ### Share previews
 
-X, Facebook, Discord, iMessage etc. read the `og:*` tags in `quiz/index.html`. After launch, fill in
-`og:url` and `og:image` (a generic 1200×630 image) with real URLs. Crawlers don't run JS, so per-result
+X, Facebook, Discord, iMessage etc. read the `og:*` tags in `quiz/index.html`. `og:url` points at
+`https://myminigamesbar.com/quiz/` and `og:image` at the generic `quiz/og.png` (1200×630). Crawlers don't run JS, so per-result
 preview images would need a static page per result or server support — see the comment in `index.html`.
 
 ## Idle Farm (idle/)
