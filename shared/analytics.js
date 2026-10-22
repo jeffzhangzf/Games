@@ -2,7 +2,7 @@
  * shared/analytics.js — 埋点（数据统计）
  * 用途：统一的事件上报入口，所有页面都通过 trackEvent() 上报
  *
- * 已接入 Google Analytics 4（衡量 ID G-PX11L2Z16E，gtag 代码在每个 HTML 的 <head> 里）
+ * 已接入 Google Analytics 4（衡量 ID G-M1ZXCC7LZZ，gtag 代码在每个 HTML 的 <head> 里）
  * 本地调试（localhost / 127.0.0.1 / file://）时同时在控制台打印
  *
  * 使用方式（在 HTML 里先引入本文件）：
