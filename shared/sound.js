@@ -8,6 +8,7 @@
  *   Sound.toggle()            切换静音，返回切换后是否静音
  *   Sound.isMuted()           当前是否静音
  *   Sound.suspend()/resume()  暂停 / 恢复所有声音（例如播放真实广告期间）
+ *   Sound.motor.update(o) / .silence()  continuous engine + brake hiss (Ridge Rider)
  *
  * 注意：浏览器要求"用户操作后"才能出声，所以 AudioContext 在第一次
  *       点击/触摸时才创建；在此之前调用 play 会被直接忽略。
@@ -318,8 +319,98 @@
       [1047, 1319, 1568].forEach(function (f) {
         tone({ freq: f, type: 'sine', duration: 0.6, volume: 0.1, delay: 0.34 });
       });
+    },
+
+    /* ----- Ridge Rider ----- */
+
+    // Crash: heavy thump + crunchy noise burst
+    crash: function () {
+      tone({ freq: 140, freqEnd: 40, type: 'sine', duration: 0.35, volume: 0.6 });
+      noise({ duration: 0.4, volume: 0.5, filter: 'lowpass', freq: 900 });
+      noise({ duration: 0.15, volume: 0.25, filter: 'highpass', freq: 2500, delay: 0.03 });
+    },
+
+    // Landing after a jump: soft suspension thud (params.v = 0..1 impact strength)
+    land: function (p) {
+      var v = Math.max(0.2, Math.min(1, p.v || 0.5));
+      tone({ freq: 110, freqEnd: 55, type: 'sine', duration: 0.18, volume: 0.45 * v });
+      noise({ duration: 0.12, volume: 0.25 * v, filter: 'lowpass', freq: 500 });
+    },
+
+    // Trick landed: crowd-ish "whoosh" + bright fanfare
+    cheer: function () {
+      noise({ duration: 0.6, volume: 0.18, filter: 'bandpass', freq: 1800 });
+      [784, 988, 1175, 1568].forEach(function (f, i) {
+        tone({ freq: f, type: 'triangle', duration: 0.2, volume: 0.2, delay: 0.06 * i });
+      });
     }
   };
+
+  /* ---------------- Continuous motor sound (Ridge Rider) ----------------
+   * One engine voice (two detuned sawtooths through a low-pass) plus a looping
+   * brake hiss. Created lazily once audio is unlocked; the game calls
+   * motor.update() every frame and motor.silence() when it pauses. */
+  var motor = null;
+  function getMotor() {
+    if (motor || !ctx) return motor;
+    var out = ctx.createGain();
+    out.gain.value = 0;
+    out.connect(master);
+    var lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 600;
+    lp.connect(out);
+    var osc1 = ctx.createOscillator(), osc2 = ctx.createOscillator();
+    osc1.type = osc2.type = 'sawtooth';
+    osc2.detune.value = 18;
+    osc1.connect(lp);
+    osc2.connect(lp);
+    osc1.start();
+    osc2.start();
+
+    if (!noiseBuffer) noise({ duration: 0.01, volume: 0.0001 }); // builds the shared buffer
+    var hiss = ctx.createBufferSource();
+    hiss.buffer = noiseBuffer;
+    hiss.loop = true;
+    var bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 2400;
+    bp.Q.value = 0.8;
+    var hissGain = ctx.createGain();
+    hissGain.gain.value = 0;
+    hiss.connect(bp);
+    bp.connect(hissGain);
+    hissGain.connect(master);
+    hiss.start();
+
+    motor = { out: out, lp: lp, osc1: osc1, osc2: osc2, hissGain: hissGain };
+    return motor;
+  }
+
+  /**
+   * @param {object} o rpm 0..1 (engine speed), throttle 0/1, brake 0..1 (hiss
+   *                   strength), on: false = engine off
+   */
+  function motorUpdate(o) {
+    if (!ctx || ctx.state !== 'running') return;
+    var m = getMotor();
+    var t = ctx.currentTime;
+    var live = o.on !== false && !muted && !suspended;
+    var rpm = Math.max(0, Math.min(1, o.rpm || 0));
+    var f = 48 + rpm * 120 + (o.throttle ? 14 : 0);
+    m.osc1.frequency.setTargetAtTime(f, t, 0.05);
+    m.osc2.frequency.setTargetAtTime(f * 1.5, t, 0.05);
+    m.lp.frequency.setTargetAtTime(400 + rpm * 1400 + (o.throttle ? 500 : 0), t, 0.05);
+    m.out.gain.setTargetAtTime(live ? 0.07 + rpm * 0.05 + (o.throttle ? 0.04 : 0) : 0, t, 0.06);
+    m.hissGain.gain.setTargetAtTime(live ? Math.min(1, o.brake || 0) * 0.22 : 0, t, 0.04);
+  }
+
+  function motorSilence() {
+    if (!motor) return;
+    var t = ctx.currentTime;
+    motor.out.gain.setTargetAtTime(0, t, 0.03);
+    motor.hissGain.gain.setTargetAtTime(0, t, 0.03);
+  }
 
   /* ---------------- 对外接口 ---------------- */
 
@@ -349,6 +440,7 @@
     play: play,
     toggle: toggle,
     isMuted: function () { return muted; },
+    motor: { update: motorUpdate, silence: motorSilence },
     suspend: function () {
       suspended = true;
       if (ctx) ctx.suspend();
