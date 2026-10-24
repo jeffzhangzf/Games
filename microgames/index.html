@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<!-- =========================================================
+  microgames/index.html — 60-Second Microgames (lobby)
+  Coin balance, the big "Start Random Challenge" button, a grid of
+  microgames and the bottom banner ad slot.
+  ========================================================= -->
+<html lang="en" class="has-sitebar">
+<head>
+  <meta charset="UTF-8">
+  <!-- Google Analytics 4 (events are sent from shared/analytics.js trackEvent) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-M1ZXCC7LZZ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-M1ZXCC7LZZ');
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f6fa">
+  <title>60-Second Microgames — Fast Free Mini Games</title>
+  <meta name="description" content="How many points can you score in 60 seconds? Ultra-fast microgames: match colors, catch fruit and whack moles. Free, no download.">
+  <link rel="canonical" href="https://myminigamesbar.com/microgames/">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../shared/style.css?v=5">
+
+  <style>
+    /* ---------- Top bar: title + coin balance ---------- */
+    .mg-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0 4px;
+    }
+    .mg-top h1 {
+      font-size: 22px;
+      line-height: 1.15;
+    }
+    .mg-top h1 span {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-sub);
+    }
+    .top-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    /* Global mute (shared/sound.js, same setting on every page) */
+    .mute {
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.06);
+      font-size: 18px;
+    }
+    .mute:active {
+      transform: scale(0.92);
+    }
+    /* Footer links get a full 44px tap height on touch screens */
+    .page .mini-footer a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      min-width: 44px;
+      justify-content: center;
+    }
+    .coins {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: #fff6d6;
+      box-shadow: inset 0 0 0 2px #f2c94c;
+      font-size: 18px;
+      font-weight: 800;
+      color: #8a6400;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    .coins .label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      opacity: 0.8;
+    }
+    .coins.bump {
+      animation: bump 0.35s ease-out;
+    }
+    @keyframes bump {
+      40% { transform: scale(1.15); }
+    }
+
+    /* ---------- The big button ---------- */
+    .challenge {
+      position: relative;
+      display: block;
+      width: 100%;
+      margin: 18px 0 8px;
+      padding: 28px 20px 24px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #ff9a4d 0%, #ff5f6d 55%, #e2459b 100%);
+      color: #fff;
+      text-align: center;
+      box-shadow: 0 10px 28px rgba(255, 95, 109, 0.4);
+      overflow: hidden;
+      animation: breathe 2.4s ease-in-out infinite;
+    }
+    .challenge:active {
+      transform: scale(0.97);
+    }
+    .challenge .bolt {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 68px;
+      height: 68px;
+      margin: 0 auto;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      font-size: 38px;
+      line-height: 1;
+    }
+    .challenge .big {
+      display: block;
+      margin-top: 8px;
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1.15;
+      text-shadow: 0 2px 0 rgba(0, 0, 0, 0.12);
+    }
+    .challenge .small {
+      display: block;
+      margin-top: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      opacity: 0.92;
+    }
+    /* Shine sweeping across */
+    .challenge::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -60%;
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+      animation: shine 3s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      50% { box-shadow: 0 14px 36px rgba(255, 95, 109, 0.55); }
+    }
+    @keyframes shine {
+      0%, 60% { left: -60%; }
+      100% { left: 130%; }
+    }
+    .challenge-note {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-sub);
+    }
+
+    /* ---------- Microgame grid ---------- */
+    .section-title {
+      margin: 26px 0 10px;
+      font-size: 17px;
+    }
+    .mg-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .mg-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      min-height: 150px;
+      padding: 14px;
+      border-radius: var(--radius);
+      background: var(--card-bg);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      text-align: left;
+    }
+    .mg-card:active {
+      transform: scale(0.97);
+    }
+    .mg-card .icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+    }
+    .mg-card .name {
+      margin-top: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .mg-card .hint {
+      margin-top: 2px;
+      font-size: 13px;
+      color: var(--text-sub);
+    }
+    .mg-card .best {
+      margin-top: auto;
+      padding-top: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .mg-card.soon {
+      background: #eceef3;
+      box-shadow: none;
+      cursor: default;
+    }
+    .mg-card.soon:active {
+      transform: none;
+    }
+    .mg-card.soon .icon {
+      background: #dcdfe6;
+      filter: grayscale(1);
+      opacity: 0.6;
+    }
+    .mg-card.soon .name,
+    .mg-card.soon .hint {
+      opacity: 0.6;
+    }
+    .mg-card .tag {
+      margin-top: auto;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: #dcdfe6;
+      color: var(--text-sub);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Temporary notice (until the engine lands in Phase 2) */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(var(--ad-height) + 24px + var(--safe-bottom));
+      z-index: 30;
+      transform: translateX(-50%);
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: rgba(45, 52, 54, 0.92);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: opacity 0.25s;
+    }
+    .toast.off {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* =========================================================
+     * Stage: full-screen play layer (engine.js), above the site bar
+     * ========================================================= */
+    html.stage-open,
+    html.stage-open body {
+      overflow: hidden;
+    }
+    #stage {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: none;
+      flex-direction: column;
+      background: #fdf6ec;
+      padding: var(--safe-top-raw) var(--safe-right) var(--safe-bottom) var(--safe-left);
+    }
+    #stage.open {
+      display: flex;
+    }
+    .hud {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px 6px;
+    }
+    #btn-quit {
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.06);
+      font-size: 20px;
+      color: var(--text-sub);
+    }
+    .hud-mid {
+      flex: 1;
+      min-width: 0;
+      text-align: center;
+    }
+    #hud-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #hud-score {
+      display: inline-block;
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+    }
+    #hud-score.up { animation: score-up 0.3s ease-out; }
+    #hud-score.down { animation: score-down 0.4s ease-out; }
+    @keyframes score-up {
+      40% { transform: scale(1.25); color: #2e9e4f; }
+    }
+    @keyframes score-down {
+      30% { transform: translateX(-4px); color: #e74c3c; }
+      60% { transform: translateX(4px); color: #e74c3c; }
+    }
+    #hud-timer {
+      flex-shrink: 0;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: 22px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-variant-numeric: tabular-nums;
+    }
+    #hud-timer.low {
+      background: #e74c3c;
+      animation: tick 1s ease-in-out infinite;
+    }
+    @keyframes tick {
+      50% { transform: scale(1.1); }
+    }
+    .hud-track {
+      flex-shrink: 0;
+      height: 6px;
+      margin: 0 12px 8px;
+      border-radius: 3px;
+      background: rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+    #hud-bar {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #ff9a4d, #ff5f6d);
+    }
+
+    /* Play area: microgames render in here */
+    .play-wrap {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+    }
+    #play {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      touch-action: none;   /* no scrolling / zooming while playing */
+    }
+    #play.shake {
+      animation: shake 0.35s ease-out;
+    }
+    @keyframes shake {
+      20% { transform: translate(-8px, 4px); }
+      40% { transform: translate(7px, -5px); }
+      60% { transform: translate(-5px, 3px); }
+      80% { transform: translate(3px, -2px); }
+    }
+    .mg-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .pop-text {
+      position: absolute;
+      z-index: 3;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 2px 0 #2e9e4f, 0 0 6px rgba(0, 0, 0, 0.2);
+      pointer-events: none;
+      animation: float-up 0.8s ease-out forwards;
+    }
+    .pop-text.bad {
+      text-shadow: 0 2px 0 #c0392b, 0 0 6px rgba(0, 0, 0, 0.2);
+    }
+    @keyframes float-up {
+      0% { opacity: 0; transform: translate(-50%, -30%) scale(0.6); }
+      20% { opacity: 1; transform: translate(-50%, -60%) scale(1.15); }
+      100% { opacity: 0; transform: translate(-50%, -160%) scale(1); }
+    }
+
+    /* Hint + "Ready... Go!" before the clock starts */
+    #intro {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: rgba(253, 246, 236, 0.7);
+      pointer-events: none;
+    }
+    #intro .hint {
+      font-size: 32px;
+      font-weight: 800;
+      text-align: center;
+      padding: 0 20px;
+      animation: pop 0.3s ease-out;
+    }
+    #intro .go {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-sub);
+    }
+    #intro .go.now {
+      font-size: 44px;
+      font-weight: 800;
+      color: var(--primary);
+      animation: pop 0.25s ease-out;
+    }
+
+    /* Overlays on the stage: Paused card and the results modal */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.45);
+    }
+    .hidden {
+      display: none !important;
+    }
+    .card {
+      width: 100%;
+      max-width: 340px;
+      max-height: 100%;
+      overflow-y: auto;
+      padding: 24px 20px 18px;
+      border-radius: 20px;
+      background: #fff;
+      text-align: center;
+      animation: pop 0.25s ease-out;
+    }
+    .card h2 {
+      font-size: 28px;
+    }
+    #res-game {
+      margin-top: 2px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    #res-score {
+      margin-top: 8px;
+      font-size: 56px;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--primary);
+      font-variant-numeric: tabular-nums;
+    }
+    #res-best {
+      margin-top: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-sub);
+    }
+    #res-coins {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      background: #fff6d6;
+      color: #8a6400;
+      font-size: 15px;
+      font-weight: 800;
+    }
+    .card .btn {
+      display: block;
+      width: 100%;
+      min-height: 48px;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 999px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 700;
+    }
+    .card .btn:active {
+      transform: scale(0.97);
+    }
+    .card .btn.reward {
+      margin-top: 18px;
+      background: linear-gradient(135deg, #2e9e4f, #47c46b);
+    }
+    .card .btn.secondary {
+      background: #fff;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+    @keyframes pop {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* ---------- Random Challenge: white transition ---------- */
+    #transition {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 20px;
+      background: #fff;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.35s ease;   /* = CFG.FADE_MS in engine.js */
+    }
+    #transition.on {
+      opacity: 1;
+    }
+    #transition .count,
+    #transition .next {
+      opacity: 0;
+    }
+    #transition.show-text .count {
+      opacity: 1;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      animation: pop 0.3s ease-out;
+    }
+    #transition.show-text .next {
+      opacity: 1;
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1.15;
+      background: linear-gradient(135deg, #ff9a4d, #ff5f6d 55%, #e2459b);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: next-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes next-in {
+      from { transform: translateY(16px) scale(0.85); opacity: 0; }
+      to { transform: none; opacity: 1; }
+    }
+
+    /* ---------- Challenge results: Jackpot! ---------- */
+    #result {
+      overflow: hidden;   /* coin shower stays inside the overlay */
+    }
+    #jackpot {
+      display: inline-block;
+      margin-bottom: 6px;
+      padding: 4px 18px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ffd34d, #ff9a1f);
+      color: #fff;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-shadow: 0 2px 0 rgba(160, 80, 0, 0.45);
+      box-shadow: 0 6px 18px rgba(255, 154, 31, 0.45);
+    }
+    #jackpot.play {
+      animation: jackpot-in 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), jackpot-glow 1.2s ease-in-out 0.7s infinite alternate;
+    }
+    @keyframes jackpot-in {
+      0% { transform: scale(0) rotate(-14deg); }
+      60% { transform: scale(1.25) rotate(5deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+    @keyframes jackpot-glow {
+      to { box-shadow: 0 6px 26px rgba(255, 196, 0, 0.9); transform: scale(1.04); }
+    }
+    #res-score.landed {
+      animation: landed 0.4s ease-out;
+    }
+    @keyframes landed {
+      40% { transform: scale(1.18); }
+    }
+    #res-breakdown {
+      margin-top: 12px;
+      padding: 4px 14px;
+      border-radius: 12px;
+      background: #f5f6fa;
+      text-align: left;
+    }
+    #res-breakdown div {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 14px;
+    }
+    #res-breakdown div + div {
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    #res-breakdown span {
+      color: var(--text-sub);
+    }
+    .coin-drop {
+      position: absolute;
+      top: -40px;
+      z-index: 11;
+      pointer-events: none;
+      animation: coin-fall 1.8s ease-in forwards;
+    }
+    @keyframes coin-fall {
+      0% { transform: translateY(0) rotate(0); opacity: 1; }
+      85% { opacity: 1; }
+      100% { transform: translateY(110vh) rotate(540deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Site bar: brand + an obvious way back to all games (styles: shared/style.css section 8) -->
+  <header class="sitebar">
+    <div class="sitebar-inner">
+      <a class="site-logo" href="../" aria-label="Mini Games home"><span class="site-logo-mark" aria-hidden="true">MG</span>Mini Games</a>
+      <a class="sitebar-home" href="../">← All Games</a>
+    </div>
+  </header>
+
+  <div class="page">
+    <div class="mg-top">
+      <h1>60-Second Microgames<span>Fast games. Big scores.</span></h1>
+      <div class="top-right">
+        <button class="mute" data-mute aria-label="Toggle sound">🔊</button>
+        <div class="coins" id="coins" aria-label="Your coins">🪙 <span id="coin-count">0</span></div>
+      </div>
+    </div>
+
+    <button class="challenge" id="btn-challenge">
+      <span class="bolt" aria-hidden="true">⚡</span>
+      <span class="big">Start Random Challenge</span>
+      <span class="small">3 random games · 20 seconds each</span>
+    </button>
+    <p class="challenge-note" id="challenge-note">One run, three games, one massive score. Ready?</p>
+
+    <h2 class="section-title">Pick a Game</h2>
+    <div class="mg-grid" id="mg-grid"></div>
+
+    <footer class="mini-footer">
+      <a href="../about.html">About</a><a href="../contact.html">Contact</a><a href="../privacy.html">Privacy</a><a href="../terms.html">Terms</a>
+      <p>© 2026 Mini Games</p>
+    </footer>
+  </div>
+
+  <!-- Stage: full-screen play layer, driven by engine.js -->
+  <div id="stage" aria-live="polite">
+    <div class="hud">
+      <button id="btn-quit" aria-label="Quit to lobby">✕</button>
+      <button class="mute" data-mute aria-label="Toggle sound">🔊</button>
+      <div class="hud-mid">
+        <div id="hud-name">Microgame</div>
+        <div id="hud-score">0</div>
+      </div>
+      <div id="hud-timer" aria-label="Seconds left">60</div>
+    </div>
+    <div class="hud-track"><div id="hud-bar"></div></div>
+    <!-- #play is emptied for every microgame; the intro sits beside it, over the play area only -->
+    <div class="play-wrap">
+      <div id="play"></div>
+      <div id="intro" class="hidden"></div>
+    </div>
+
+    <!-- Random Challenge: white "Next Up" screen between games -->
+    <div id="transition" class="hidden"></div>
+
+    <div id="pause" class="overlay hidden">
+      <div class="card">
+        <h2>Paused</h2>
+        <button class="btn" id="btn-resume">Resume</button>
+      </div>
+    </div>
+
+    <div id="result" class="overlay hidden">
+      <div class="card">
+        <div id="jackpot" class="hidden">JACKPOT!</div>
+        <h2 id="res-title">Time's Up!</h2>
+        <div id="res-game"></div>
+        <div id="res-score">0</div>
+        <div id="res-best"></div>
+        <div id="res-breakdown" class="hidden"></div>
+        <div id="res-coins"></div>
+        <!-- Rewarded: double this round's score (hidden by ads.js while ads are off) -->
+        <button class="btn reward" id="btn-double" data-noad-hide>▶ Watch Ad to Double Score</button>
+        <button class="btn" id="btn-again">Play Again</button>
+        <button class="btn secondary" id="btn-lobby">Back to Lobby</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast off" id="toast"></div>
+
+  <!-- Bottom banner ad slot (filled by shared/ads.js showBanner; hidden while ads are off) -->
+  <div id="ad-banner"></div>
+
+  <script src="../shared/analytics.js?v=7"></script>
+  <script src="../shared/ads.js?v=6"></script>
+  <script src="../shared/sound.js?v=9"></script>
+  <script src="../shared/coins.js?v=1"></script>
+  <script src="engine.js?v=4"></script>
+  <!-- Microgames register themselves with MicroEngine -->
+  <script src="games/color.js?v=1"></script>
+  <script src="games/catch.js?v=3"></script>
+  <script src="games/whack.js?v=4"></script>
+  <script src="lobby.js?v=4"></script>
+</body>
+</html>

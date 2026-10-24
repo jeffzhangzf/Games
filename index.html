@@ -39,7 +39,7 @@
   <meta name="twitter:card" content="summary_large_image">
 
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="shared/style.css?v=4">
+  <link rel="stylesheet" href="shared/style.css?v=5">
 
   <!-- 首页专用样式（只有几行，直接写在这里） -->
   <style>
@@ -169,6 +169,53 @@
       font-weight: 600;
     }
 
+    /* 60-Second Microgames: full-width hero card at the top of the list */
+    .game-card.mega {
+      position: relative;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
+      padding: 20px 20px 18px;
+      background: linear-gradient(135deg, #ff9a4d 0%, #ff5f6d 55%, #e2459b 100%);
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(255, 95, 109, 0.35);
+      overflow: hidden;
+    }
+    .game-card.mega .mega-icon {
+      position: absolute;
+      right: 14px;
+      top: 10px;
+      font-size: 64px;
+      line-height: 1;
+      opacity: 0.9;
+      transform: rotate(10deg);
+    }
+    .game-card.mega .badge {
+      color: #fff;
+      opacity: 0.9;
+    }
+    .game-card.mega h2 {
+      max-width: 75%;
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1.15;
+    }
+    .game-card.mega p {
+      max-width: 80%;
+      margin-top: 6px;
+      font-size: 14px;
+      line-height: 1.4;
+      opacity: 0.95;
+    }
+    .game-card.mega .play-btn {
+      margin-top: 14px;
+      padding: 10px 22px;
+      background: #fff;
+      color: #ff5f6d;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
     .coming-soon {
       text-align: center;
       color: var(--text-sub);
@@ -199,6 +246,14 @@
 
     <!-- 游戏列表：以后新增游戏，复制一个 <a class="game-card"> 修改即可 -->
     <section class="game-list">
+      <a class="game-card mega" href="microgames/">
+        <span class="mega-icon" aria-hidden="true">⏱️</span>
+        <span class="badge">New · Play in 60 seconds</span>
+        <h2>60-Second Microgames</h2>
+        <p>How many points can you score in 60 seconds? Play ultra-fast mini-games!</p>
+        <span class="play-btn">Play Now</span>
+      </a>
+
       <a class="game-card" href="merge/">
         <div class="game-icon">2048</div>
         <div class="game-info">
