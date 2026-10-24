@@ -49,7 +49,7 @@ const CONFIG = {
 
   SETTINGS_KEY: 'erdayi_settings',   // 上次选择的棋盘和难度
   STATS_KEY: 'erdayi_stats_',        // 战绩键名前缀（后面接 棋盘_难度）
-  RULES_SEEN_KEY: 'erdayi_rules_seen', // 是否看过规则（第一次进入自动弹出）
+  RULES_SEEN_KEY: 'erdayi_rules_seen', // 是否看过规则（第一次点 Start 后自动弹出）
   HINT_KEY: 'erdayi_hint_seen'         // 是否看过第一局的操作提示
 };
 
@@ -693,6 +693,8 @@ ui.btnOpenRules.addEventListener('click', showRules);
 ui.btnStart.addEventListener('click', () => {
   ui.setupModal.classList.add('hidden');
   startGame(pending.size, pending.level);
+  // 第一次来：点了 Start 之后才弹规则（盖在先后手弹窗上），不挡 Start 按钮
+  if (!storageGet(CONFIG.RULES_SEEN_KEY)) showRules();
 });
 ui.btnCancelSetup.addEventListener('click', () => ui.setupModal.classList.add('hidden'));
 
@@ -740,7 +742,7 @@ ui.btnMute.addEventListener('click', () => {
 window.addEventListener('resize', fitBoard);
 
 /* =========================================================
- * 11. 启动：先画一个空棋盘垫底，弹出设置；第一次来自动弹出规则
+ * 11. 启动：先画一个空棋盘垫底，弹出设置（规则在第一次点 Start 后才弹）
  * ========================================================= */
 updateMuteUI();
 state.nb = ErDaYi.buildNeighbors(pending.size);
@@ -750,4 +752,3 @@ buildBoard();
 renderPieces();
 updateStatus();
 showSetup();
-if (!storageGet(CONFIG.RULES_SEEN_KEY)) showRules();

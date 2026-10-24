@@ -4,7 +4,7 @@
   用途：搭建页面骨架（游戏画布容器、顶部分数栏、结束弹窗、难度选择弹窗、横屏提示），
         通过 CDN 加载 Phaser 3，再加载公共脚本和游戏逻辑 game.js
   ========================================================= -->
-<html lang="en" class="has-sitebar">
+<html lang="en" class="has-sitebar has-game-copy">
 <head>
   <meta charset="UTF-8">
   <!-- Google Analytics 4 (events are sent from shared/analytics.js trackEvent) -->
@@ -19,7 +19,7 @@
   <meta name="theme-color" content="#fdf6ec">
   <title>Number Merge — Free Online Merge Game, No Download</title>
   <!-- SEO -->
-  <meta name="description" content="Number Merge: drop number balls and smash matching numbers into bigger ones — 1 → 2 → 4 → … → 2048! Four difficulty levels. Free online game, no download, plays instantly on phone or desktop.">
+  <meta name="description" content="Drop number balls, match pairs and merge 1 to 2 to 4 all the way to 2048. Four difficulty levels, each with its own best score. Free, no download.">
   <meta name="keywords" content="number merge,merge game,2048,drop and merge,physics puzzle,free online game,browser game,no download">
 
   <!-- Open Graph / 分享卡片 -->
@@ -35,7 +35,7 @@
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../shared/style.css?v=5">
+  <link rel="stylesheet" href="../shared/style.css?v=6">
 
   <style>
     html, body {
@@ -426,12 +426,53 @@
       to   { transform: scale(1);   opacity: 1; }
     }
   </style>
+  <!-- Structured data (SEO + Growth Packet page 10): FAQ text must match the visible FAQs below -->
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "VideoGame",
+   "name": "Number Merge",
+   "url": "https://myminigamesbar.com/merge/",
+   "description": "Drop number balls, match pairs and merge 1 to 2 to 4 all the way to 2048. Four difficulty levels, each with its own best score. Free, no download.",
+   "applicationCategory": "Game",
+   "operatingSystem": "Web browser",
+   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "FAQPage",
+   "mainEntity": [
+    {"@type":"Question","name":"How do you win Number Merge?",
+     "acceptedAnswer":{"@type":"Answer","text":"There is no final win screen - you score by merging. Reaching a 2048 ball is the classic goal; after that, keep going for a higher score until the well fills or the timer ends your run."}},
+    {"@type":"Question","name":"What is the difference between the difficulties?",
+     "acceptedAnswer":{"@type":"Answer","text":"Easy, Normal, Hard and Insane use different timers, so higher difficulties give you less time to think. Each one tracks a separate best score."}},
+    {"@type":"Question","name":"Does Number Merge save my score?",
+     "acceptedAnswer":{"@type":"Answer","text":"Yes - your best score for each difficulty is saved on your device, so it is there when you come back in the same browser."}},
+    {"@type":"Question","name":"Can I play Number Merge on my phone?",
+     "acceptedAnswer":{"@type":"Answer","text":"Yes. It plays in your mobile browser with no download and no sign-up."}}
+   ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Mini Games","item":"https://myminigamesbar.com/"},
+    {"@type":"ListItem","position":2,"name":"Puzzle Games","item":"https://myminigamesbar.com/puzzle-games/"},
+    {"@type":"ListItem","position":3,"name":"Number Merge","item":"https://myminigamesbar.com/merge/"}
+   ]
+  }
+  </script>
 </head>
 <body>
   <!-- Site bar: brand + an obvious way back to all games (styles: shared/style.css section 8) -->
   <header class="sitebar">
     <div class="sitebar-inner">
       <a class="site-logo" href="../" aria-label="Mini Games home"><span class="site-logo-mark" aria-hidden="true">MG</span>Mini Games</a>
+      <h1 class="sitebar-title">Number Merge</h1>
       <a class="sitebar-home" href="../">← All Games</a>
     </div>
   </header>
@@ -519,6 +560,40 @@
       </div>
     </div>
   </div>
+
+  <!-- About / How to play / FAQs / Related Games (text: SEO/SEO + Growth Packet.pdf; styles: shared/style.css section 9) -->
+  <section class="game-copy">
+    <h2>About this game</h2>
+    <p>Number Merge is a drop-and-merge puzzle. Balls numbered 1, 2, 4 and beyond fall into the well; when two balls with the same number touch, they merge into the next number up - 1 becomes 2, 2 becomes 4, all the way to 2048. Plan your drops so matching numbers land together, keep the well from filling up, and chase a score higher than your last.</p>
+    <h2>How to play</h2>
+    <ul>
+      <li>Choose a difficulty: Easy, Normal, Hard or Insane - each runs a different timer.</li>
+      <li>Aim and drop each ball where its match is most likely to land next to it.</li>
+      <li>Watch the Next-ball preview, your current Score and your Best as you play.</li>
+      <li>Each difficulty keeps its own best score, saved on your device.</li>
+    </ul>
+    <h2>Tips</h2>
+    <p>Build in corners: keep your biggest numbers tucked to one side and merge upwards in a chain, rather than scattering pairs. On higher difficulties the timer is the real opponent - a good-enough drop now beats a perfect drop too late.</p>
+    <h2>FAQs</h2>
+    <h3>How do you win Number Merge?</h3>
+    <p>There is no final win screen - you score by merging. Reaching a 2048 ball is the classic goal; after that, keep going for a higher score until the well fills or the timer ends your run.</p>
+    <h3>What is the difference between the difficulties?</h3>
+    <p>Easy, Normal, Hard and Insane use different timers, so higher difficulties give you less time to think. Each one tracks a separate best score.</p>
+    <h3>Does Number Merge save my score?</h3>
+    <p>Yes - your best score for each difficulty is saved on your device, so it is there when you come back in the same browser.</p>
+    <h3>Can I play Number Merge on my phone?</h3>
+    <p>Yes. It plays in your mobile browser with no download and no sign-up.</p>
+    <h2>Related Games</h2>
+    <ul class="related-list">
+      <li><a href="../bricks/"><span class="related-icon" aria-hidden="true">🧱</span><b>Brick Builder</b><span>Same plan-ahead puzzle feel</span></a></li>
+      <li><a href="../idle/"><span class="related-icon" aria-hidden="true">🌾</span><b>Idle Farm</b><span>A longer, relaxing session</span></a></li>
+    </ul>
+    <p class="related-more">More games:
+      <a href="../puzzle-games/">Puzzle Games</a>
+      <a href="../quick-games/">Quick Games</a>
+      <a href="../">All Mini Games (home)</a>
+    </p>
+  </section>
 
   <!-- 横屏提示（只在手机横屏时由 CSS 显示） -->
   <div id="rotate-tip">

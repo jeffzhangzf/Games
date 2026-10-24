@@ -7,7 +7,7 @@
   Visual theme: carnival balloon stall. No realistic guns anywhere — the
   player aims with a toy-style crosshair only.
   ========================================================= -->
-<html lang="en" class="has-sitebar">
+<html lang="en" class="has-sitebar has-game-copy">
 <head>
   <meta charset="UTF-8">
   <!-- Google Analytics 4 (events are sent from shared/analytics.js trackEvent) -->
@@ -22,7 +22,7 @@
   <meta name="theme-color" content="#8fd3ff">
   <title>Balloon Pop — Free Online Game, No Download</title>
   <!-- SEO: description with the keywords people search for -->
-  <meta name="description" content="Balloon Pop: you have 60 seconds to tap and pop colorful balloons. Gold balloons are worth 50 points — but watch out for the black bombs! Free online game, no download, plays instantly on phone or desktop.">
+  <meta name="description" content="Pop balloons against the clock: 60 seconds, regular balloons +10, gold +50, avoid the black bombs at -20. Free balloon pop game, no download.">
   <meta name="keywords" content="balloon pop,balloon game,pop balloons,tap game,free online game,browser game,no download">
 
   <!-- Open Graph / social cards (used when the link is shared) -->
@@ -38,7 +38,7 @@
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../shared/style.css?v=5">
+  <link rel="stylesheet" href="../shared/style.css?v=6">
 
   <style>
     :root {
@@ -462,12 +462,53 @@
       }
     }
   </style>
+  <!-- Structured data (SEO + Growth Packet page 10): FAQ text must match the visible FAQs below -->
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "VideoGame",
+   "name": "Balloon Pop",
+   "url": "https://myminigamesbar.com/balloon/",
+   "description": "Pop balloons against the clock: 60 seconds, regular balloons +10, gold +50, avoid the black bombs at -20. Free balloon pop game, no download.",
+   "applicationCategory": "Game",
+   "operatingSystem": "Web browser",
+   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "FAQPage",
+   "mainEntity": [
+    {"@type":"Question","name":"How long is a game of Balloon Pop?",
+     "acceptedAnswer":{"@type":"Answer","text":"One round lasts 60 seconds, with 30 shots per clip and automatic reloads."}},
+    {"@type":"Question","name":"How does scoring work?",
+     "acceptedAnswer":{"@type":"Answer","text":"A regular balloon is worth 10 points and a gold balloon 50 points, but gold balloons fly faster. Hitting a black bomb subtracts 20 points."}},
+    {"@type":"Question","name":"Does Balloon Pop track my best score?",
+     "acceptedAnswer":{"@type":"Answer","text":"Yes. Your best score is shown at the end of a round and saved on your device."}},
+    {"@type":"Question","name":"Is Balloon Pop suitable for a short break?",
+     "acceptedAnswer":{"@type":"Answer","text":"It is built for exactly that - one round is one minute, with no setup and no account."}}
+   ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Mini Games","item":"https://myminigamesbar.com/"},
+    {"@type":"ListItem","position":2,"name":"Quick Games","item":"https://myminigamesbar.com/quick-games/"},
+    {"@type":"ListItem","position":3,"name":"Balloon Pop","item":"https://myminigamesbar.com/balloon/"}
+   ]
+  }
+  </script>
 </head>
 <body>
   <!-- Site bar: brand + an obvious way back to all games (styles: shared/style.css section 8) -->
   <header class="sitebar">
     <div class="sitebar-inner">
       <a class="site-logo" href="../" aria-label="Mini Games home"><span class="site-logo-mark" aria-hidden="true">MG</span>Mini Games</a>
+      <h1 class="sitebar-title">Balloon Pop</h1>
       <a class="sitebar-home" href="../">← All Games</a>
     </div>
   </header>
@@ -560,6 +601,40 @@
       </div>
     </div>
   </div>
+
+  <!-- About / How to play / FAQs / Related Games (text: SEO/SEO + Growth Packet.pdf; styles: shared/style.css section 9) -->
+  <section class="game-copy">
+    <h2>About this game</h2>
+    <p>Balloon Pop is pure quick-fire arcade play. Balloons float up, you take aim, and the clock gives you exactly 60 seconds. Not every target is worth hitting: regular balloons score, gold balloons score big if you are fast enough to catch them, and the black bombs cost you points. When time runs out you get your score, your accuracy, and a best score to beat next time.</p>
+    <h2>How to play</h2>
+    <ul>
+      <li>You have 60 seconds and 30 shots per clip, with auto-reload when the clip runs out.</li>
+      <li>Regular balloon: +10 points. Gold balloon: +50 points - and it flies faster.</li>
+      <li>Black bomb: -20 points. Do not hit it, however tempting the shot looks.</li>
+      <li>Follow your Score, Time and Ammo on the HUD; your accuracy and best score are shown at the end.</li>
+    </ul>
+    <h2>Tips</h2>
+    <p>Accuracy beats spray. Reloads cost seconds you cannot get back, so line up gold balloons first and let a bomb drift past rather than risking a rushed shot near it.</p>
+    <h2>FAQs</h2>
+    <h3>How long is a game of Balloon Pop?</h3>
+    <p>One round lasts 60 seconds, with 30 shots per clip and automatic reloads.</p>
+    <h3>How does scoring work?</h3>
+    <p>A regular balloon is worth 10 points and a gold balloon 50 points, but gold balloons fly faster. Hitting a black bomb subtracts 20 points.</p>
+    <h3>Does Balloon Pop track my best score?</h3>
+    <p>Yes. Your best score is shown at the end of a round and saved on your device.</p>
+    <h3>Is Balloon Pop suitable for a short break?</h3>
+    <p>It is built for exactly that - one round is one minute, with no setup and no account.</p>
+    <h2>Related Games</h2>
+    <ul class="related-list">
+      <li><a href="../quiz/"><span class="related-icon" aria-hidden="true">🎮</span><b>Gamer Personality Quiz</b><span>Another one-minute break</span></a></li>
+      <li><a href="../merge/"><span class="related-icon" aria-hidden="true">🔢</span><b>Number Merge</b><span>Quick rounds, deeper thinking</span></a></li>
+      <li><a href="../microgames/"><span class="related-icon" aria-hidden="true">⏱️</span><b>60-Second Microgames</b><span>Another 60-second score chase</span></a></li>
+    </ul>
+    <p class="related-more">More games:
+      <a href="../quick-games/">Quick Games</a>
+      <a href="../">All Mini Games (home)</a>
+    </p>
+  </section>
 
   <div id="rotate-tip">
     <div class="icon">📱</div>

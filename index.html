@@ -21,7 +21,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#f5f6fa">
   <title>Mini Games — Free Online Games, No Download</title>
-  <meta name="description" content="Free mini games you can play right in your browser — no download, no sign-up. Number Merge, Brick Builder puzzles, Balloon Pop, Idle Farm, a gamer personality quiz and more.">
+  <meta name="description" content="Play free online mini games in your browser - merge, puzzle, board, balloon and idle games. No download, no sign-up. Just pick a game and play.">
 
   <meta name="keywords" content="free online games,browser games,mini games,no download games,html5 games,casual games">
 
@@ -222,7 +222,125 @@
       font-size: 13px;
       padding: 16px 0;
     }
+
+    /* 分类导航：标题下方一行小标签 */
+    .category-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .category-chips a {
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: var(--card-bg);
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .category-chips a:active {
+      transform: scale(0.96);
+    }
+
+    /* 关于本站：游戏列表下方的一整块，文字偏小、偏淡，不抢游戏卡片的风头 */
+    .home-about {
+      margin-top: 20px;
+      padding: 24px 4px 0;
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--text-sub);
+      -webkit-user-select: text;
+      user-select: text;
+    }
+    .home-about h2 {
+      margin-bottom: 8px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .home-about p + p {
+      margin-top: 10px;
+    }
+    .home-about p a {
+      color: var(--text);
+      font-weight: 700;
+      text-decoration: underline;
+      text-decoration-color: rgba(0, 0, 0, 0.2);
+      text-underline-offset: 3px;
+    }
+    /* 卖点：2 x 2 小卡片 */
+    .perks {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 20px 0 28px;
+      list-style: none;
+    }
+    .perks li {
+      padding: 12px;
+      border-radius: 14px;
+      background: var(--card-bg);
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .perk-icon {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 20px;
+    }
+    .perks b {
+      display: block;
+      color: var(--text);
+    }
+    /* FAQ：点击展开 */
+    .faq details {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+    }
+    .faq summary {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 0;
+      list-style: none;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .faq summary::-webkit-details-marker {
+      display: none;
+    }
+    .faq summary::after {
+      content: "+";
+      color: var(--text-sub);
+      font-weight: 400;
+    }
+    .faq details[open] summary::after {
+      content: "−";
+    }
+    .faq details p {
+      padding-bottom: 12px;
+    }
   </style>
+  <!-- Structured data (SEO + Growth Packet page 10): FAQ text must match the visible FAQs below -->
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "FAQPage",
+   "mainEntity": [
+    {"@type":"Question","name":"Are the games really free?",
+     "acceptedAnswer":{"@type":"Answer","text":"Yes. Every game on Mini Games is free to play in your browser, with no download, no sign-up and no payment."}},
+    {"@type":"Question","name":"Do I need to create an account?",
+     "acceptedAnswer":{"@type":"Answer","text":"No. There are no accounts. Your best scores and game progress are saved on your own device, in your browser."}},
+    {"@type":"Question","name":"Can I play on my phone?",
+     "acceptedAnswer":{"@type":"Answer","text":"Yes. The site and every game are built mobile-first and work in a phone browser - nothing to install from an app store."}},
+    {"@type":"Question","name":"Which game should I try first?",
+     "acceptedAnswer":{"@type":"Answer","text":"For a quick break, Balloon Pop or the Gamer Personality Quiz. To settle in, Number Merge or Idle Farm. Not sure? Take the quiz - it will tell you what kind of gamer you are."}}
+   ]
+  }
+  </script>
 </head>
 <body>
   <div class="page">
@@ -241,12 +359,18 @@
   <main>
     <section class="hero">
       <h1>Free Online Mini Games</h1>
-      <p>Free · No download · Play instantly</p>
+      <p>Free · No download · Pick a game below and start playing in seconds</p>
+      <!-- 分类导航：一行小标签 -->
+      <nav class="category-chips" aria-label="Game categories">
+        <a href="puzzle-games/">🧩 Puzzle</a>
+        <a href="quick-games/">⚡ Quick</a>
+        <a href="idle-games/">🌾 Idle</a>
+      </nav>
     </section>
 
     <!-- 游戏列表：以后新增游戏，复制一个 <a class="game-card"> 修改即可 -->
     <section class="game-list">
-      <a class="game-card mega" href="microgames/">
+      <a class="game-card mega" href="microgames/" aria-label="Play 60-Second Microgames">
         <span class="mega-icon" aria-hidden="true">⏱️</span>
         <span class="badge">New · Play in 60 seconds</span>
         <h2>60-Second Microgames</h2>
@@ -254,7 +378,7 @@
         <span class="play-btn">Play Now</span>
       </a>
 
-      <a class="game-card" href="merge/">
+      <a class="game-card" href="merge/" aria-label="Play Number Merge">
         <div class="game-icon">2048</div>
         <div class="game-info">
           <h2>Number Merge</h2>
@@ -320,10 +444,50 @@
     </section>
 
     <p class="coming-soon">More games coming soon…</p>
+
+    <!-- 关于本站：介绍 + 三个分类 + 卖点小卡片 + 可展开的 FAQ（文字：SEO/SEO + Growth Packet.pdf 第 2 页） -->
+    <section class="home-about" aria-labelledby="about-title">
+      <h2 id="about-title">About Mini Games</h2>
+      <p>Short on time, big on play. Mini Games is a small, hand-picked collection of free browser games you can start in seconds - no download, no sign-up, no install. Drop and merge numbers on your way to 2048, out-think an AI in a classic folk board game, rebuild pixel-art blueprints brick by brick, pop balloons against the clock, discover what kind of gamer you are, or plant a farm that keeps earning while you are away.</p>
+      <p><a href="puzzle-games/">Puzzle games</a> - for players who like to think one move ahead: Number Merge, Brick Builder and Two Beat One. <a href="quick-games/">Quick games</a> - got one to five minutes? Balloon Pop, a round of Number Merge, or the one-minute Gamer Personality Quiz. <a href="idle-games/">Idle games</a> - games that reward you for coming back, starting with Idle Farm, which earns coins while you are away.</p>
+      <p>Every game runs right here in your browser, on phone or desktop, and remembers your best scores and progress on your own device - so you can leave mid-game and pick up where you left off, without ever creating an account.</p>
+
+      <ul class="perks" aria-label="Why play here">
+        <li><span class="perk-icon" aria-hidden="true">📲</span><b>Nothing to install.</b> Every game plays in the browser, on mobile or desktop.</li>
+        <li><span class="perk-icon" aria-hidden="true">🙅</span><b>No account, ever.</b> Scores and progress save on your device, not on a server.</li>
+        <li><span class="perk-icon" aria-hidden="true">🎯</span><b>No interruptions.</b> No popups and no sign-up prompts - the game is the page.</li>
+        <li><span class="perk-icon" aria-hidden="true">⏱️</span><b>Short sessions welcome.</b> Most games are built for a one-to-five-minute break.</li>
+      </ul>
+
+      <h2>FAQs</h2>
+      <div class="faq">
+        <details>
+          <summary>Are the games really free?</summary>
+          <p>Yes. Every game on Mini Games is free to play in your browser, with no download, no sign-up and no payment.</p>
+        </details>
+        <details>
+          <summary>Do I need to create an account?</summary>
+          <p>No. There are no accounts. Your best scores and game progress are saved on your own device, in your browser.</p>
+        </details>
+        <details>
+          <summary>Can I play on my phone?</summary>
+          <p>Yes. The site and every game are built mobile-first and work in a phone browser - nothing to install from an app store.</p>
+        </details>
+        <details>
+          <summary>Which game should I try first?</summary>
+          <p>For a quick break, Balloon Pop or the Gamer Personality Quiz. To settle in, Number Merge or Idle Farm. Not sure? Take the quiz - it will tell you what kind of gamer you are.</p>
+        </details>
+      </div>
+    </section>
   </main>
 
   <!-- 站点页脚：法律/联系页面链接 + 版权（About 等页面用同一份结构） -->
   <footer class="site-footer">
+    <ul class="footer-links" aria-label="Game categories">
+      <li><a href="puzzle-games/">Puzzle Games</a></li>
+      <li><a href="quick-games/">Quick Games</a></li>
+      <li><a href="idle-games/">Idle Games</a></li>
+    </ul>
     <ul class="footer-links">
       <li><a href="about.html">About</a></li>
       <li><a href="contact.html">Contact</a></li>

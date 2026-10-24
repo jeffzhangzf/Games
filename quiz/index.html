@@ -20,7 +20,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#f3efff">
   <title>Personality Quiz — What Kind of Gamer Are You?</title>
-  <meta name="description" content="Take this free online personality quiz to discover your gaming personality: are you The Strategist, The Explorer, The Competitor or The Casual? 10 fun questions, results in a minute, plus a shareable result card for your squad.">
+  <meta name="description" content="Answer 10 quick questions and find out what kind of gamer you are: Strategist, Explorer, Competitor or Casual. Get a shareable result card.">
   <meta name="keywords" content="personality quiz,gaming personality,gamer quiz,what kind of gamer are you,free online quiz,fun quiz">
 
   <!-- Share previews (X, Facebook, Discord, iMessage… all read og:* tags) -->
@@ -39,7 +39,7 @@
   <meta name="twitter:card" content="summary_large_image">
 
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../shared/style.css?v=5">
+  <link rel="stylesheet" href="../shared/style.css?v=6">
 
   <style>
     :root {
@@ -131,6 +131,9 @@
     /* ---------- Start view ---------- */
     #view-start .hero {
       flex: 1;
+      /* Fill the first screen (view padding subtracted), so the About / FAQ copy starts below it */
+      min-height: calc(100vh - var(--safe-top) - 40px - var(--ad-height) - var(--safe-bottom));
+      min-height: calc(100svh - var(--safe-top) - 40px - var(--ad-height) - var(--safe-bottom));
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -471,6 +474,46 @@
       opacity: 1;
     }
   </style>
+  <!-- Structured data (SEO + Growth Packet page 10): FAQ text must match the visible FAQs below -->
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "VideoGame",
+   "name": "Gamer Personality Quiz",
+   "url": "https://myminigamesbar.com/quiz/",
+   "description": "Answer 10 quick questions and find out what kind of gamer you are: Strategist, Explorer, Competitor or Casual. Get a shareable result card.",
+   "applicationCategory": "Game",
+   "operatingSystem": "Web browser",
+   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "FAQPage",
+   "mainEntity": [
+    {"@type":"Question","name":"How long does the quiz take?",
+     "acceptedAnswer":{"@type":"Answer","text":"About a minute - 10 questions in total."}},
+    {"@type":"Question","name":"What results can I get?",
+     "acceptedAnswer":{"@type":"Answer","text":"One of four types: The Strategist, The Explorer, The Competitor or The Casual."}},
+    {"@type":"Question","name":"How do I share my result?",
+     "acceptedAnswer":{"@type":"Answer","text":"Your result comes as a card with Share, Save image and Copy Link options, so you can post it, save it or send the link directly."}},
+    {"@type":"Question","name":"Do I need an account to take the quiz?",
+     "acceptedAnswer":{"@type":"Answer","text":"No. There are no accounts on Mini Games, and the quiz needs no sign-up."}}
+   ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Mini Games","item":"https://myminigamesbar.com/"},
+    {"@type":"ListItem","position":2,"name":"Quick Games","item":"https://myminigamesbar.com/quick-games/"},
+    {"@type":"ListItem","position":3,"name":"Gamer Personality Quiz","item":"https://myminigamesbar.com/quiz/"}
+   ]
+  }
+  </script>
 </head>
 <body>
   <!-- Site bar: brand + an obvious way back to all games (styles: shared/style.css section 8) -->
@@ -485,7 +528,7 @@
   <section class="view with-banner" id="view-start">
     <div class="hero">
       <div class="hero-emoji">🎮</div>
-      <h1 id="start-title"></h1>
+      <h1 id="start-title">What Kind of Gamer Are You?</h1>
       <p class="subtitle" id="start-subtitle"></p>
       <!-- Shown only when localStorage has a previous result -->
       <p class="last-result" id="last-result" hidden></p>
@@ -493,6 +536,37 @@
         <button class="btn" id="btn-start">Start Quiz</button>
       </div>
     </div>
+    <!-- About / How to play / FAQs / Related Games (text: SEO/SEO + Growth Packet.pdf; styles: shared/style.css section 9) -->
+    <section class="game-copy">
+      <h2>About this quiz</h2>
+      <p>Ten questions, about a minute, no wrong answers. The Gamer Personality Quiz sorts your answers into one of four gamer types: <strong>The Strategist</strong>, who plans three moves ahead; <strong>The Explorer</strong>, who has to see what is over the next hill; <strong>The Competitor</strong>, who plays to win and checks the score to prove it; and <strong>The Casual</strong>, who plays for the break, not the leaderboard. At the end you get a result card you can share, save as an image, or send as a link - then argue about with your friends.</p>
+      <h2>How it works</h2>
+      <ul>
+        <li>Answer all 10 questions honestly - first instincts give the best results.</li>
+        <li>On the result screen, use Share, Save image or Copy Link to send your card.</li>
+        <li>Retake it any time; your answers, not an account, decide the result.</li>
+      </ul>
+      <h2>FAQs</h2>
+      <h3>How long does the quiz take?</h3>
+      <p>About a minute - 10 questions in total.</p>
+      <h3>What results can I get?</h3>
+      <p>One of four types: The Strategist, The Explorer, The Competitor or The Casual.</p>
+      <h3>How do I share my result?</h3>
+      <p>Your result comes as a card with Share, Save image and Copy Link options, so you can post it, save it or send the link directly.</p>
+      <h3>Do I need an account to take the quiz?</h3>
+      <p>No. There are no accounts on Mini Games, and the quiz needs no sign-up.</p>
+      <h2>Related Games</h2>
+      <ul class="related-list">
+        <li><a href="../balloon/"><span class="related-icon" aria-hidden="true">🎈</span><b>Balloon Pop</b><span>The other one-minute game</span></a></li>
+        <li><a href="../merge/"><span class="related-icon" aria-hidden="true">🔢</span><b>Number Merge</b><span>Quick rounds, deeper thinking</span></a></li>
+        <li><a href="../microgames/"><span class="related-icon" aria-hidden="true">⏱️</span><b>60-Second Microgames</b><span>Three tiny games in one minute</span></a></li>
+      </ul>
+      <p class="related-more">More games:
+        <a href="../quick-games/">Quick Games</a>
+        <a href="../">All Mini Games (home)</a>
+      </p>
+    </section>
+
     <!-- Site links (styles: shared/style.css section 8) -->
     <footer class="mini-footer">
       <a href="../about.html">About</a><a href="../contact.html">Contact</a><a href="../privacy.html">Privacy</a><a href="../terms.html">Terms</a>
@@ -519,7 +593,7 @@
     <p class="shared-note" id="shared-note" hidden>👋 Someone shared this result with you. Want to take the quiz yourself?</p>
     <div class="r-emoji" id="r-emoji"></div>
     <div class="r-kicker" id="r-kicker">You are</div>
-    <h1 class="r-title" id="r-title"></h1>
+    <h2 class="r-title" id="r-title"></h2>
     <p class="r-desc" id="r-desc"></p>
 
     <!-- Trait bars, filled by quiz.js -->

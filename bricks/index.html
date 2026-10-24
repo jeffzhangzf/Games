@@ -5,7 +5,7 @@
            then loads the shared scripts, the model data and game.js.
   No game engine: grids and previews are drawn with Canvas, the brick tray is DOM.
   ========================================================= -->
-<html lang="en" class="has-sitebar">
+<html lang="en" class="has-sitebar has-game-copy">
 <head>
   <meta charset="UTF-8">
   <!-- Google Analytics 4 (events are sent from shared/analytics.js trackEvent) -->
@@ -20,7 +20,7 @@
   <meta name="theme-color" content="#eef3f8">
   <title>Brick Builder — Free Online Building Game</title>
   <!-- SEO -->
-  <meta name="description" content="Brick Builder is a free online puzzle game: copy each pixel-art blueprint by fitting colorful bricks into the grid. 40 brick building puzzles from easy to brain-melting, with rotation, tricky shapes and decoy bricks. No download — play instantly on phone or desktop.">
+  <meta name="description" content="Copy pixel-art blueprints by fitting colourful bricks into the grid. 40 puzzles, rotation, decoy bricks and star unlocks. Free, in your browser.">
   <meta name="keywords" content="brick building game,puzzle game,free online game,no download,block puzzle,pixel art puzzle,polyomino puzzle,browser game">
 
   <!-- Open Graph / social cards (used when the link is shared) -->
@@ -42,7 +42,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap">
-  <link rel="stylesheet" href="../shared/style.css?v=5">
+  <link rel="stylesheet" href="../shared/style.css?v=6">
 
   <style>
     :root {
@@ -815,12 +815,53 @@
       100% { transform: scale(1); }
     }
   </style>
+  <!-- Structured data (SEO + Growth Packet page 10): FAQ text must match the visible FAQs below -->
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "VideoGame",
+   "name": "Brick Builder",
+   "url": "https://myminigamesbar.com/bricks/",
+   "description": "Copy pixel-art blueprints by fitting colourful bricks into the grid. 40 puzzles, rotation, decoy bricks and star unlocks. Free, in your browser.",
+   "applicationCategory": "Game",
+   "operatingSystem": "Web browser",
+   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "FAQPage",
+   "mainEntity": [
+    {"@type":"Question","name":"How many puzzles are in Brick Builder?",
+     "acceptedAnswer":{"@type":"Answer","text":"40 puzzles, ranging from easy to hard, with more blueprint packs unlocked by earning stars."}},
+    {"@type":"Question","name":"How do stars and packs work?",
+     "acceptedAnswer":{"@type":"Answer","text":"You earn stars for solving puzzles - including a no-hint star when you solve without help. Stars unlock new blueprint packs."}},
+    {"@type":"Question","name":"What does a hint cost?",
+     "acceptedAnswer":{"@type":"Answer","text":"A hint helps you place a piece, but using one costs the no-hint star for that puzzle. Your solve still counts."}},
+    {"@type":"Question","name":"What are decoy bricks?",
+     "acceptedAnswer":{"@type":"Answer","text":"Some levels include bricks that are not part of the blueprint. If a finished picture looks wrong, a decoy in the grid is the usual culprit."}}
+   ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Mini Games","item":"https://myminigamesbar.com/"},
+    {"@type":"ListItem","position":2,"name":"Puzzle Games","item":"https://myminigamesbar.com/puzzle-games/"},
+    {"@type":"ListItem","position":3,"name":"Brick Builder","item":"https://myminigamesbar.com/bricks/"}
+   ]
+  }
+  </script>
 </head>
 <body>
   <!-- Site bar: brand + an obvious way back to all games (styles: shared/style.css section 8) -->
   <header class="sitebar">
     <div class="sitebar-inner">
       <a class="site-logo" href="../" aria-label="Mini Games home"><span class="site-logo-mark" aria-hidden="true">MG</span>Mini Games</a>
+      <h1 class="sitebar-title">Brick Builder</h1>
       <a class="sitebar-home" href="../">← All Games</a>
     </div>
   </header>
@@ -881,7 +922,7 @@
     <!-- ===== Results ===== -->
     <section id="result-screen" class="screen hidden">
       <div class="result-body">
-        <h1 class="result-title" id="result-title">Level Complete!</h1>
+        <h2 class="result-title" id="result-title">Level Complete!</h2>
         <div class="result-model" id="result-model"></div>
         <div class="result-preview"><canvas id="result-preview"></canvas></div>
         <div class="result-stars" id="result-stars" aria-hidden="true"></div>
@@ -971,6 +1012,39 @@
 
     <div class="toast" id="toast"></div>
   </div>
+
+  <!-- About / How to play / FAQs / Related Games (text: SEO/SEO + Growth Packet.pdf; styles: shared/style.css section 9) -->
+  <section class="game-copy">
+    <h2>About this game</h2>
+    <p>Brick Builder turns pixel art into a puzzle. Each level shows you a blueprint - a small pixel-art picture on a grid - and a tray of colourful bricks. Fit, rotate and place the bricks until your grid matches the blueprint exactly. It starts easy and gets genuinely tricky, with awkward shapes and decoy bricks that look right but are not.</p>
+    <h2>How to play</h2>
+    <ul>
+      <li>Study the blueprint, then place bricks into the grid to copy it.</li>
+      <li>Rotate pieces to fit tricky shapes; watch out for decoy bricks that do not belong.</li>
+      <li>Finish all 40 puzzles, which run from easy to hard.</li>
+      <li>Earn stars for clean solves to unlock new blueprint packs. Using a hint costs you the no-hint star for that puzzle - so try without one first.</li>
+    </ul>
+    <h2>Tips</h2>
+    <p>Place the rarest colour first - it usually has only one place it can go, and it anchors everything else. Leave hints for the last two or three bricks, where one wrong placement hides easily.</p>
+    <h2>FAQs</h2>
+    <h3>How many puzzles are in Brick Builder?</h3>
+    <p>40 puzzles, ranging from easy to hard, with more blueprint packs unlocked by earning stars.</p>
+    <h3>How do stars and packs work?</h3>
+    <p>You earn stars for solving puzzles - including a no-hint star when you solve without help. Stars unlock new blueprint packs.</p>
+    <h3>What does a hint cost?</h3>
+    <p>A hint helps you place a piece, but using one costs the no-hint star for that puzzle. Your solve still counts.</p>
+    <h3>What are decoy bricks?</h3>
+    <p>Some levels include bricks that are not part of the blueprint. If a finished picture looks wrong, a decoy in the grid is the usual culprit.</p>
+    <h2>Related Games</h2>
+    <ul class="related-list">
+      <li><a href="../merge/"><span class="related-icon" aria-hidden="true">🔢</span><b>Number Merge</b><span>Fitting and planning</span></a></li>
+      <li><a href="../erdayi/"><span class="related-icon" aria-hidden="true">♟️</span><b>Two Beat One</b><span>Quiet, thinky play</span></a></li>
+    </ul>
+    <p class="related-more">More games:
+      <a href="../puzzle-games/">Puzzle Games</a>
+      <a href="../">All Mini Games (home)</a>
+    </p>
+  </section>
 
   <!-- Bottom banner ad slot (filled by shared/ads.js showBanner) -->
   <div id="ad-banner"></div>

@@ -5,7 +5,7 @@
         设置弹窗、规则弹窗、结束弹窗、横屏提示），再加载公共脚本和 game.js
   不依赖任何游戏引擎：棋盘用 SVG 绘制，动画用 CSS transition
   ========================================================= -->
-<html lang="en" class="has-sitebar">
+<html lang="en" class="has-sitebar has-game-copy">
 <head>
   <meta charset="UTF-8">
   <!-- Google Analytics 4 (events are sent from shared/analytics.js trackEvent) -->
@@ -20,7 +20,7 @@
   <meta name="theme-color" content="#f7f0e3">
   <title>Two Beat One — Free Online Folk Board Game vs AI</title>
   <!-- SEO -->
-  <meta name="description" content="Two Beat One: a classic folk strategy board game. Line up two of your pieces against one enemy piece to capture it, and win by leaving your opponent with a single piece. Play the AI on 3 board sizes and 3 difficulty levels — free, no download.">
+  <meta name="description" content="Play Two Beat One free online: line up two of your pieces beside one enemy piece to capture it. 4x4 to 6x6 boards, three AI levels, no download.">
   <meta name="keywords" content="two beat one,board game,strategy game,folk board game,play vs AI,free online game,browser game,no download">
 
   <!-- Open Graph / 分享卡片 -->
@@ -36,7 +36,7 @@
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../shared/style.css?v=5">
+  <link rel="stylesheet" href="../shared/style.css?v=6">
 
   <style>
     :root {
@@ -485,6 +485,46 @@
       to   { transform: scale(1);   opacity: 1; }
     }
   </style>
+  <!-- Structured data (SEO + Growth Packet page 10): FAQ text must match the visible FAQs below -->
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "VideoGame",
+   "name": "Two Beat One",
+   "url": "https://myminigamesbar.com/erdayi/",
+   "description": "Play Two Beat One free online: line up two of your pieces beside one enemy piece to capture it. 4x4 to 6x6 boards, three AI levels, no download.",
+   "applicationCategory": "Game",
+   "operatingSystem": "Web browser",
+   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "FAQPage",
+   "mainEntity": [
+    {"@type":"Question","name":"How do you capture a piece in Two Beat One?",
+     "acceptedAnswer":{"@type":"Answer","text":"Move so that two of your pieces sit next to one enemy piece on the same line, with no other pieces on that line. If a fourth piece is on the line, or the enemy moved into that position itself, there is no capture."}},
+    {"@type":"Question","name":"Can pieces move diagonally or jump?",
+     "acceptedAnswer":{"@type":"Answer","text":"No. A piece moves one step along a line to an empty neighbouring point - no diagonals and no jumping."}},
+    {"@type":"Question","name":"How do you win?",
+     "acceptedAnswer":{"@type":"Answer","text":"Reduce your opponent to one piece, or leave them with no legal move. If play goes a long time with no capture, the game is a draw."}},
+    {"@type":"Question","name":"Is Two Beat One hard for beginners?",
+     "acceptedAnswer":{"@type":"Answer","text":"Start on the 4x4 board against the Easy AI and use Undo freely while you learn. Move up a board size before you move up an AI level."}}
+   ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Mini Games","item":"https://myminigamesbar.com/"},
+    {"@type":"ListItem","position":2,"name":"Puzzle Games","item":"https://myminigamesbar.com/puzzle-games/"},
+    {"@type":"ListItem","position":3,"name":"Two Beat One","item":"https://myminigamesbar.com/erdayi/"}
+   ]
+  }
+  </script>
 </head>
 <body>
   <!-- Site bar: brand + an obvious way back to all games (styles: shared/style.css section 8) -->
@@ -612,6 +652,40 @@
       </div>
     </div>
   </div>
+
+  <!-- About / How to play / FAQs / Related Games (text: SEO/SEO + Growth Packet.pdf; styles: shared/style.css section 9) -->
+  <section class="game-copy">
+    <h2>About this game</h2>
+    <p>Two Beat One is a classic folk strategy game, played here against the computer. It is a game of traps: a single enemy piece is safe on its own, but line up two of your pieces next to it on the same line - with nothing else on that line - and it is captured. Simple to learn, and much harder to master than it looks.</p>
+    <h2>How to play</h2>
+    <ul>
+      <li>On your turn, move one of your pieces one step along a line to an empty neighbouring point. No diagonals, and no jumping over pieces.</li>
+      <li>Capture by ending a move with exactly two of your pieces next to one enemy piece on a line, with no other pieces anywhere on that line.</li>
+      <li>A capture does not count if the enemy piece walked into the trap itself, or if a fourth piece is anywhere on the line.</li>
+      <li>You win when your opponent is left with only one piece, or cannot move. A long stretch with no capture is a draw.</li>
+      <li>Choose a 4x4, 5x5 or 6x6 board, an AI level (Easy, Normal or Hard), and whether to move first or second. Undo is available, and the game keeps your win/loss record on your device.</li>
+    </ul>
+    <h2>Tips</h2>
+    <p>Think in lines, not pieces: every move should either build a two-piece threat or break one of your opponent's. On larger boards, resist chasing a single capture if it scatters the pair you were building.</p>
+    <h2>FAQs</h2>
+    <h3>How do you capture a piece in Two Beat One?</h3>
+    <p>Move so that two of your pieces sit next to one enemy piece on the same line, with no other pieces on that line. If a fourth piece is on the line, or the enemy moved into that position itself, there is no capture.</p>
+    <h3>Can pieces move diagonally or jump?</h3>
+    <p>No. A piece moves one step along a line to an empty neighbouring point - no diagonals and no jumping.</p>
+    <h3>How do you win?</h3>
+    <p>Reduce your opponent to one piece, or leave them with no legal move. If play goes a long time with no capture, the game is a draw.</p>
+    <h3>Is Two Beat One hard for beginners?</h3>
+    <p>Start on the 4x4 board against the Easy AI and use Undo freely while you learn. Move up a board size before you move up an AI level.</p>
+    <h2>Related Games</h2>
+    <ul class="related-list">
+      <li><a href="../merge/"><span class="related-icon" aria-hidden="true">🔢</span><b>Number Merge</b><span>Another think-ahead duel with the board</span></a></li>
+      <li><a href="../bricks/"><span class="related-icon" aria-hidden="true">🧱</span><b>Brick Builder</b><span>Pattern and planning</span></a></li>
+    </ul>
+    <p class="related-more">More games:
+      <a href="../puzzle-games/">Puzzle Games</a>
+      <a href="../">All Mini Games (home)</a>
+    </p>
+  </section>
 
   <!-- 横屏提示 -->
   <div id="rotate-tip">

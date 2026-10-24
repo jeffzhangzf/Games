@@ -5,7 +5,7 @@
         欢迎回来弹窗、提示条、横幅广告位），再加载公共模块、数值配置 data.js 和逻辑 idle.js
   不依赖游戏引擎：全部用 DOM + CSS 实现
   ========================================================= -->
-<html lang="en" class="has-sitebar">
+<html lang="en" class="has-sitebar has-game-copy">
 <head>
   <meta charset="UTF-8">
   <!-- Google Analytics 4 (events are sent from shared/analytics.js trackEvent) -->
@@ -19,7 +19,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#eef7e4">
   <title>Idle Farm — Free Online Idle Game That Earns While You're Away</title>
-  <meta name="description" content="Idle Farm: grow wheat, carrots and pumpkins, raise chickens, cows and bees, and upgrade your farm. It keeps earning coins even after you close the page! Free online idle game, no download, plays instantly on phone or desktop.">
+  <meta name="description" content="Grow wheat, carrots and pumpkins, raise chickens, cows and bees - and keep earning coins while you&#x27;re away. Free idle farm game, no download.">
   <meta name="keywords" content="idle farm,idle game,incremental game,farming game,clicker game,free online game,browser game,no download">
 
   <!-- Share previews (X, Facebook, Discord, iMessage… all read og:* tags) -->
@@ -35,7 +35,7 @@
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../shared/style.css?v=5">
+  <link rel="stylesheet" href="../shared/style.css?v=6">
 
   <style>
     :root {
@@ -128,6 +128,7 @@
       flex: 1;
       min-height: 0;
       overflow-y: auto;
+      overscroll-behavior: contain; /* scrolling the farm never scrolls the page below */
       -webkit-overflow-scrolling: touch;
       padding: 8px 14px 12px;
     }
@@ -625,12 +626,53 @@
       }
     }
   </style>
+  <!-- Structured data (SEO + Growth Packet page 10): FAQ text must match the visible FAQs below -->
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "VideoGame",
+   "name": "Idle Farm",
+   "url": "https://myminigamesbar.com/idle/",
+   "description": "Grow wheat, carrots and pumpkins, raise chickens, cows and bees - and keep earning coins while you're away. Free idle farm game, no download.",
+   "applicationCategory": "Game",
+   "operatingSystem": "Web browser",
+   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "FAQPage",
+   "mainEntity": [
+    {"@type":"Question","name":"Does Idle Farm really earn while I'm away?",
+     "acceptedAnswer":{"@type":"Answer","text":"Yes. The farm keeps earning coins while you are away, and a \"Welcome back\" summary shows your offline earnings when you return."}},
+    {"@type":"Question","name":"What can I grow and raise?",
+     "acceptedAnswer":{"@type":"Answer","text":"Crops are wheat, carrots and pumpkins. Animals are chickens, cows and bees. Upgrades in their own tab make both earn more."}},
+    {"@type":"Question","name":"Do I need to leave the game open?",
+     "acceptedAnswer":{"@type":"Answer","text":"No - that is the point of an idle game. Close the tab and come back later; progress is saved on your device."}},
+    {"@type":"Question","name":"Is Idle Farm free?",
+     "acceptedAnswer":{"@type":"Answer","text":"Yes, free in your browser with no download and no sign-up."}}
+   ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Mini Games","item":"https://myminigamesbar.com/"},
+    {"@type":"ListItem","position":2,"name":"Idle Games","item":"https://myminigamesbar.com/idle-games/"},
+    {"@type":"ListItem","position":3,"name":"Idle Farm","item":"https://myminigamesbar.com/idle/"}
+   ]
+  }
+  </script>
 </head>
 <body>
   <!-- Site bar: brand + an obvious way back to all games (styles: shared/style.css section 8) -->
   <header class="sitebar">
     <div class="sitebar-inner">
       <a class="site-logo" href="../" aria-label="Mini Games home"><span class="site-logo-mark" aria-hidden="true">MG</span>Mini Games</a>
+      <h1 class="sitebar-title">Idle Farm</h1>
       <a class="sitebar-home" href="../">← All Games</a>
     </div>
   </header>
@@ -665,6 +707,39 @@
       <button id="btn-upgrades"><i class="dot"></i><span class="icon">⬆️</span>Upgrades</button>
     </nav>
   </div>
+
+  <!-- About / How to play / FAQs / Related Games (text: SEO/SEO + Growth Packet.pdf; styles: shared/style.css section 9) -->
+  <section class="game-copy">
+    <h2>About this game</h2>
+    <p>Idle Farm is the slow game on Mini Games, in the best way. Plant crops, add animals, buy upgrades - then close the tab. Your farm keeps earning coins while you are away, and when you return a "Welcome back" summary shows you what it earned. It is a game measured in days of small, satisfying progress, not in one frantic minute.</p>
+    <h2>How to play</h2>
+    <ul>
+      <li>Seeds tab: grow wheat, carrots and pumpkins.</li>
+      <li>Animals tab: raise chickens, cows and bees alongside your crops.</li>
+      <li>Upgrades tab: spend coins to make everything earn faster.</li>
+      <li>Leave and come back whenever you like - offline earnings are waiting, and your farm is saved on your device.</li>
+    </ul>
+    <h2>Tips</h2>
+    <p>Reinvest early and often: an upgrade bought today earns through every hour you are away tonight. Balance crops and animals rather than maxing one tab - steady income across all three beats a single spike.</p>
+    <h2>FAQs</h2>
+    <h3>Does Idle Farm really earn while I'm away?</h3>
+    <p>Yes. The farm keeps earning coins while you are away, and a "Welcome back" summary shows your offline earnings when you return.</p>
+    <h3>What can I grow and raise?</h3>
+    <p>Crops are wheat, carrots and pumpkins. Animals are chickens, cows and bees. Upgrades in their own tab make both earn more.</p>
+    <h3>Do I need to leave the game open?</h3>
+    <p>No - that is the point of an idle game. Close the tab and come back later; progress is saved on your device.</p>
+    <h3>Is Idle Farm free?</h3>
+    <p>Yes, free in your browser with no download and no sign-up.</p>
+    <h2>Related Games</h2>
+    <ul class="related-list">
+      <li><a href="../merge/"><span class="related-icon" aria-hidden="true">🔢</span><b>Number Merge</b><span>Another game that rewards a longer session</span></a></li>
+      <li><a href="../bricks/"><span class="related-icon" aria-hidden="true">🧱</span><b>Brick Builder</b><span>Calm, unhurried play</span></a></li>
+    </ul>
+    <p class="related-more">More games:
+      <a href="../idle-games/">Idle Games</a>
+      <a href="../">All Mini Games (home)</a>
+    </p>
+  </section>
 
   <!-- 底部弹出面板：标题和内容由 idle.js 填充 -->
   <div id="sheet" class="sheet hidden">
